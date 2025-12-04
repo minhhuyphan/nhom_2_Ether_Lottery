@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MATTIEN Wallet - Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Top Navigation -->
+      <nav class="top-nav">
+        <div class="nav-container">
+          <div class="nav-left">
+            <div class="logo">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect width="24" height="24" rx="6" fill="#FFD700" />
+                <path d="M12 6L6 18H18L12 6Z" fill="#000" />
+              </svg>
+              <span>MATTIEN</span>
+            </div>
+            <div class="nav-links">
+              <a href="#" class="nav-link">Mua tiền điện tử</a>
+              <a href="#" class="nav-link">Thị trường</a>
+              <a href="#" class="nav-link">Buôn bán</a>
+              <a href="#" class="nav-link">Kiếm</a>
+              <a href="#" class="nav-link">Thanh toán</a>
+              <a href="#" class="nav-link">Thẻ chế</a>
+              <a href="#" class="nav-link">Phần thưởng</a>
+            </div>
+          </div>
+          <div class="nav-right">
+            <img src="icon/con_nguoi.jpg" alt="Kiếm" class="icon-img" />
+            <img src="icon/cai_chuong.png" alt="Kiếm" class="icon-img" />
+          </div>
+        </div>
+      </nav>
+
+      <!-- Sub Navigation -->
+       <nav class="top-nav">
+      <nav class="sub-nav">
+        <div class="nav-container">
+          <a href="#" class="sub-link active">Tổng quan</a>
+          <a href="#" class="sub-link">Riêng tư</a>
+          <a href="#" class="sub-link">Việc kinh doanh</a>
+          <a href="#" class="sub-link">P2P</a>
+          <a href="#" class="sub-link">Buôn bán</a>
+          <a href="#" class="sub-link">Lịch sử</a>
+          <a href="#" class="sub-link">Cài đặt</a>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="container">
+        <!-- Balance Overview -->
+        <section class="balance-section">
+          <div class="balance-header">
+            <div>
+              <h1>Tổng số tiền</h1>
+              <div class="balance-main">
+                <span class="currency">$</span
+                ><span id="balance-usd" class="amount">0.00</span>
+                <span class="currency-label">USD</span>
+              </div>
+            </div>
+            <div class="balance-actions">
+              <button class="action-card" id="btn-send-receive">
+                <img src="icon/add_ban.jpg" alt="Giới thiệu" class="icon-img" />
+                <span>Gửi thiệu và kiếm tiền</span>
+              </button>
+              <button class="action-card" id="btn-earn">
+                <img src="icon/hop_qua.jpg" alt="Kiếm" class="icon-img" />
+                <span>Kiếm</span>
+              </button>
+              <button class="action-card" id="btn-report">
+                <img src="icon/bao_cao.jpg" alt="Báo cáo" class="icon-img" />
+                <span>Báo cáo số dư</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Balance Cards -->
+          <div class="balance-grid">
+            <div class="balance-card">
+              <div class="card-label">
+                <span>Riêng tư</span>
+                <img src="icon/dong_ho.png" alt="Time" class="icon-info" />
+              </div>
+              <div class="card-amount">
+                $<span id="balance-private">0.00</span>
+              </div>
+              <div class="card-actions">
+                <button class="card-btn">✓</button>
+                <button class="card-btn">↗</button>
+                <button class="card-btn">↻</button>
+                <button class="card-btn">⋯</button>
+              </div>
+            </div>
+
+            <div class="balance-card">
+              <div class="card-label">
+                <span>Việc kinh doanh</span>
+                <span class="badge-positive">+$0.00</span>
+                <img src="icon/dong_ho.png" alt="Time" class="icon-info" />
+              </div>
+              <div class="card-amount">
+                $<span id="balance-business">0.00</span>
+              </div>
+              <div class="card-actions">
+                <button class="card-btn">↗</button>
+                <button class="card-btn">↙</button>
+              </div>
+            </div>
+
+            <div class="balance-card">
+              <div class="card-label">
+                <span>Giao dịch P2P</span>
+                <img src="icon/dong_ho.png" alt="Time" class="icon-info" />
+              </div>
+              <div class="card-amount">$<span id="balance-p2p">0.00</span></div>
+              <div class="card-actions">
+                <button class="card-btn">↗</button>
+                <button class="card-btn">↙</button>
+              </div>
+            </div>
+
+            <div class="balance-card">
+              <div class="card-label">
+                <span>Giao dịch</span>
+              </div>
+              <div class="card-amount">
+                $<span id="balance-trading">0.00</span>
+              </div>
+              <div class="card-actions">
+                <button class="card-btn">↗</button>
+                <button class="card-btn">↙</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- KYC Notices -->
+          <div class="notice-grid">
+            <div class="notice-card">
+              <span class="notice-icon">✓</span>
+              <div class="notice-content">
+                <h4>Xác minh KYC</h4>
+                <p>
+                  KYC đảm bảo an toàn cho bạn bằng cách ngăn chặn gian lận trong
+                  các giao dịch tài chính.
+                </p>
+              </div>
+              <button class="notice-close">✕</button>
+            </div>
+            <div class="notice-card">
+              <span class="notice-icon lock">🔒</span>
+              <div class="notice-content">
+                <h4>Xác thực 2 bước</h4>
+                <p>
+                  2FA tăng cường bảo mật, thêm một lớp của ngăn chặn truy cập
+                  trái phép.
+                </p>
+              </div>
+              <button class="notice-close">✕</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Assets Section -->
+        <section class="assets-section">
+          <h2>Tài sản</h2>
+          <div class="assets-tabs">
+            <button class="tab-btn active">Riêng tư</button>
+            <button class="tab-btn">Việc kinh doanh</button>
+            <button class="tab-btn-link" id="btn-add-token">
+              Hiển thị thêm →
+            </button>
+          </div>
+
+          <div class="assets-table">
+            <div class="table-header">
+              <div>Tên</div>
+              <div>Sự cân bằng</div>
+              <div>Giá</div>
+              <div>Phần bổ</div>
+              <div></div>
+            </div>
+            <ul id="asset-list" class="asset-list"></ul>
+            <div class="no-assets hidden" id="no-assets">
+              <p>Chưa có giao dịch nào</p>
+              <p class="text-muted">Bạn không có bất kỳ giao dịch nào</p>
+              <button class="btn-receive" id="btn-receive">Nhận địa chỉ</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Modal -->
+      <div id="modal" class="modal hidden">
+        <div class="modal-overlay" id="modal-close"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Quản lý Ví</h3>
+            <button id="modal-close-btn" class="close-btn">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="wallet-info-display">
+              <span id="address-short">0xA1b2...9Ff0</span>
+              <button id="copy-address" class="copy-btn-small">Copy</button>
+            </div>
+            <ul id="wallet-list" class="wallet-list"></ul>
+            <div class="wallet-actions">
+              <button id="create-wallet" class="btn-primary-full">
+                + Tạo Ví Mới
+              </button>
+              <button id="import-wallet" class="btn-secondary-full">
+                📥 Nhập Ví
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+    </nav>
+  </body>
+</html>
