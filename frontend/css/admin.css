@@ -22,9 +22,24 @@
 .admin-main {
   margin-left: var(--sidebar-width);
   min-height: 100vh;
-  background: var(--bg-main);
+  background-image: url("../icon/nen.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   position: relative;
   z-index: 1;
+}
+
+.admin-main::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  z-index: -1;
 }
 
 /* Sidebar Header */
@@ -40,6 +55,12 @@
   font-size: 20px;
   font-weight: 700;
   color: var(--primary-gold);
+}
+
+.sidebar-header .logo-img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
 }
 
 /* Sidebar Navigation */
