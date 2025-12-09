@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kết Nối Ví - Ether Lottery</title>
+    <link rel="stylesheet" href="../css/login.css" />
+    <link rel="stylesheet" href="../css/connect.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-card connect-card">
+        <!-- Logo -->
+        <div class="login-header">
+          <div class="logo">
+            <img src="../icon/logo.png" alt="Logo" class="logo-img" />
+            <span>Ether Lottery</span>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <h1 class="login-title">Kết Nối Ví</h1>
+        <p class="subtitle">Chọn ví để kết nối và tham gia xổ số</p>
+
+        <!-- Wallet Options -->
+        <div class="wallet-options">
+          <!-- MetaMask -->
+          <button class="wallet-btn" id="metamask-btn">
+            <div class="wallet-icon">
+              <span class="wallet-emoji">🦊</span>
+            </div>
+            <div class="wallet-info">
+              <h3>MetaMask</h3>
+              <p>Kết nối với MetaMask Wallet</p>
+            </div>
+            <div class="wallet-arrow">→</div>
+          </button>
+
+          <!-- WalletConnect -->
+          <button class="wallet-btn" id="walletconnect-btn">
+            <div class="wallet-icon">
+              <span class="wallet-emoji">🔗</span>
+            </div>
+            <div class="wallet-info">
+              <h3>WalletConnect</h3>
+              <p>Quét mã QR với ví di động</p>
+            </div>
+            <div class="wallet-arrow">→</div>
+          </button>
+
+          <!-- Coinbase Wallet -->
+          <button class="wallet-btn" id="coinbase-btn">
+            <div class="wallet-icon">
+              <span class="wallet-emoji">💼</span>
+            </div>
+            <div class="wallet-info">
+              <h3>Coinbase Wallet</h3>
+              <p>Kết nối với Coinbase Wallet</p>
+            </div>
+            <div class="wallet-arrow">→</div>
+          </button>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-text">
+            <strong>Chưa có ví?</strong>
+            <p>
+              Tải MetaMask miễn phí tại
+              <a href="https://metamask.io" target="_blank" rel="noopener"
+                >metamask.io</a
+              >
+            </p>
+          </div>
+        </div>
+
+        <!-- Security Note -->
+        <div class="security-note">
+          <p>🔒 Kết nối an toàn và được mã hóa</p>
+          <p class="note-small">Chúng tôi không lưu trữ private key của bạn</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+          <a href="login.html" class="link-secondary">Quay lại đăng nhập</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script src="../js/connect.js"></script>
+  </body>
+</html>

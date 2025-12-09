@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ether Lottery - Lịch Sử Hoạt Động</title>
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/navigation.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/icons.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="stylesheet" href="../css/admin-profile.css" />
+    <link rel="stylesheet" href="../css/admin-history.css" />
+    <script src="../js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Sidebar Navigation -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <img src="../icon/logo.png" alt="Logo" class="logo-img" />
+            <span>Ether Lottery</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="admin.html" class="sidebar-item">
+            <img
+              src="../icon/tro_choi.png"
+              alt="Lottery"
+              class="sidebar-icon"
+            />
+            <span>Quay Số Trúng Thưởng</span>
+          </a>
+          <a href="admin-history.html" class="sidebar-item active">
+            <img
+              src="../icon/lich_su_tham_gia.png"
+              alt="History"
+              class="sidebar-icon"
+            />
+            <span>Lịch Sử</span>
+          </a>
+          <a href="admin-profile.html" class="sidebar-item">
+            <img src="../icon/ho_so.png" alt="Profile" class="sidebar-icon" />
+            <span>Hồ Sơ Admin</span>
+          </a>
+          <a href="admin-finance.html" class="sidebar-item">
+            <img
+              src="../icon/tui_tien.png"
+              alt="Finance"
+              class="sidebar-icon"
+            />
+            <span>Tài Chính</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <a
+            href="admin-profile.html"
+            class="admin-profile"
+            style="cursor: pointer; text-decoration: none"
+          >
+            <div class="admin-avatar">
+              <img src="../icon/tai_khoan.png" alt="Admin" />
+            </div>
+            <div class="admin-info">
+              <div class="admin-name">admin</div>
+              <div class="admin-role">Administrator</div>
+            </div>
+          </a>
+          <a href="login.html" class="btn-logout"> <span>←</span> Đăng Xuất </a>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="admin-main">
+        <!-- Top Bar -->
+        <header class="admin-header">
+          <div class="header-left">
+            <h1>
+              <img
+                src="../icon/lich_su_tham_gia.png"
+                alt="History"
+                class="inline-icon"
+              />
+              Lịch Sử Hoạt Động
+            </h1>
+          </div>
+          <div class="header-right">
+            <div class="network-status">
+              <span class="status-dot"></span>
+              <span id="network-name">Sepolia Testnet</span>
+            </div>
+            <button class="btn-primary" id="connect-wallet-btn">
+              <span>🦊</span>
+              <span id="wallet-status">Connect MetaMask</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- History Content -->
+        <div class="admin-content">
+          <!-- Filter Section -->
+          <div class="history-filters">
+            <div class="filter-group">
+              <label for="filter-type">Loại Hoạt Động:</label>
+              <select id="filter-type" class="filter-select">
+                <option value="all">Tất cả</option>
+                <option value="winner">Chọn người thắng</option>
+                <option value="player">Người chơi mới</option>
+                <option value="lottery">Vòng quay mới</option>
+                <option value="ticket">Mua vé</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-date">Thời Gian:</label>
+              <select id="filter-date" class="filter-select">
+                <option value="all">Tất cả</option>
+                <option value="today">Hôm nay</option>
+                <option value="week">7 ngày qua</option>
+                <option value="month">30 ngày qua</option>
+              </select>
+            </div>
+            <button class="btn-primary filter-btn">
+              <img src="../icon/thong_ke.png" alt="Filter" class="btn-icon" />
+              Lọc
+            </button>
+          </div>
+
+          <!-- Statistics Overview -->
+          <div class="history-stats">
+            <div class="history-stat-card">
+              <div class="stat-icon-wrapper success">
+                <img src="../icon/cup.png" alt="Winners" />
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="total-winners-picked">0</div>
+                <div class="stat-label">Người Thắng</div>
+              </div>
+            </div>
+            <div class="history-stat-card">
+              <div class="stat-icon-wrapper info">
+                <img src="../icon/nguoi_choi.png" alt="Players" />
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="total-new-players">0</div>
+                <div class="stat-label">Người Chơi Mới</div>
+              </div>
+            </div>
+            <div class="history-stat-card">
+              <div class="stat-icon-wrapper warning">
+                <img src="../icon/tro_choi.png" alt="Lotteries" />
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="total-lotteries-created">0</div>
+                <div class="stat-label">Vòng Quay Mới</div>
+              </div>
+            </div>
+            <div class="history-stat-card">
+              <div class="stat-icon-wrapper primary">
+                <img src="../icon/ve.png" alt="Tickets" />
+              </div>
+              <div class="stat-info">
+                <div class="stat-number" id="total-tickets-sold">0</div>
+                <div class="stat-label">Vé Đã Bán</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Timeline -->
+          <div class="profile-card activity-card">
+            <div class="card-header">
+              <h2>
+                <img
+                  src="../icon/lich_su_tham_gia.png"
+                  alt="Timeline"
+                  class="inline-icon"
+                />
+                Timeline Hoạt Động
+              </h2>
+              <div class="timeline-actions">
+                <button class="btn-secondary">
+                  <img src="../icon/coppy.png" alt="Export" class="btn-icon" />
+                  Xuất CSV
+                </button>
+              </div>
+            </div>
+
+            <div class="activity-timeline" id="activity-timeline">
+              <!-- Success Activity -->
+              <div class="timeline-item success">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/cup.png" alt="Winner" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Đã chọn người thắng</div>
+                      <div class="activity-description">
+                        Vòng #42 • Người thắng: 0x1234...5678
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">2 giờ trước</span>
+                    <span class="activity-amount success">+0.033 ETH</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Info Activity -->
+              <div class="timeline-item info">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/nguoi_choi.png" alt="Player" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Người chơi mới tham gia</div>
+                      <div class="activity-description">
+                        Địa chỉ: 0x9876...4321
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">5 giờ trước</span>
+                    <span class="activity-tag">Mới</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Warning Activity -->
+              <div class="timeline-item warning">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/tro_choi.png" alt="Lottery" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Bắt đầu vòng quay mới</div>
+                      <div class="activity-description">
+                        Vòng #43 • Giá vé: 0.011 ETH
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">1 ngày trước</span>
+                    <span class="activity-tag">Đang diễn ra</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Secondary Activity -->
+              <div class="timeline-item secondary">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/ve.png" alt="Ticket" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Vé mới được mua</div>
+                      <div class="activity-description">
+                        15 vé đã bán trong 24h qua
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">2 ngày trước</span>
+                    <span class="activity-amount">0.165 ETH</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- More activities -->
+              <div class="timeline-item success">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/cup.png" alt="Winner" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Đã chọn người thắng</div>
+                      <div class="activity-description">
+                        Vòng #41 • Người thắng: 0xabcd...ef12
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">3 ngày trước</span>
+                    <span class="activity-amount success">+0.045 ETH</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item info">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/nguoi_choi.png" alt="Player" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">
+                        5 người chơi mới tham gia
+                      </div>
+                      <div class="activity-description">
+                        Tăng trưởng đột biến trong giờ qua
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">4 ngày trước</span>
+                    <span class="activity-tag">Hot</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item warning">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/tro_choi.png" alt="Lottery" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Bắt đầu vòng quay mới</div>
+                      <div class="activity-description">
+                        Vòng #42 • Giá vé: 0.011 ETH
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">5 ngày trước</span>
+                    <span class="activity-tag">Hoàn thành</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-item secondary">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="activity-header">
+                    <div class="activity-icon">
+                      <img src="../icon/ve.png" alt="Ticket" />
+                    </div>
+                    <div class="activity-info">
+                      <div class="activity-title">Kỷ lục vé bán ra</div>
+                      <div class="activity-description">
+                        50 vé đã bán trong 1 ngày
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="activity-time">1 tuần trước</span>
+                    <span class="activity-amount">0.550 ETH</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="load-more-section">
+              <button class="btn-secondary load-more-btn">
+                <img src="../icon/xu_ly.png" alt="Load" class="btn-icon" />
+                Tải Thêm Hoạt Động
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../js/lottery.js"></script>
+    <script>
+      // Load history data
+      document.addEventListener("DOMContentLoaded", () => {
+        // Load stats from localStorage
+        const historyStats = JSON.parse(
+          localStorage.getItem("historyStats") ||
+            '{"winnersPicked":42,"newPlayers":156,"lotteriesCreated":43,"ticketsSold":987}'
+        );
+
+        document.getElementById("total-winners-picked").textContent =
+          historyStats.winnersPicked || 0;
+        document.getElementById("total-new-players").textContent =
+          historyStats.newPlayers || 0;
+        document.getElementById("total-lotteries-created").textContent =
+          historyStats.lotteriesCreated || 0;
+        document.getElementById("total-tickets-sold").textContent =
+          historyStats.ticketsSold || 0;
+      });
+    </script>
+  </body>
+</html>

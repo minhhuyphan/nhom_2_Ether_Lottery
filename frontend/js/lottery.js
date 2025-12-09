@@ -17,6 +17,7 @@ let ethToUsd = 2000;
 document.addEventListener("DOMContentLoaded", async () => {
   loadTheme();
   setupEventListeners();
+  checkWalletConnection();
 
   // Check if MetaMask is installed
   if (typeof window.ethereum !== "undefined") {
@@ -48,55 +49,66 @@ function setupEventListeners() {
 
 // Connect Wallet
 async function connectWallet() {
-  try {
-    showToast("Connecting to MetaMask...", "pending");
-
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts",
-    });
-
-    userAccount = accounts[0];
-
-    // Update UI
-    const walletStatus = document.getElementById("wallet-status");
-    walletStatus.innerHTML = `
-      <span>${formatAddress(userAccount)}</span>
-      <span id="user-balance">0.00 ETH</span>
-    `;
-
-    showToast("Wallet connected successfully!", "success");
-
-    // Initialize contract
-    if (CONTRACT_ADDRESS !== "YOUR_CONTRACT_ADDRESS_HERE") {
-      contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-      await loadContractData();
-    } else {
-      showToast("Please configure CONTRACT_ADDRESS in lottery.js", "error");
-    }
-
-    // Check if user is admin
-    checkIfAdmin();
-
-    // Get user balance
-    getUserBalance();
-
-    // Listen for account changes
-    window.ethereum.on("accountsChanged", handleAccountChange);
-    window.ethereum.on("chainChanged", () => window.location.reload());
-  } catch (error) {
-    console.error("Connection error:", error);
-    showToast("Failed to connect wallet: " + error.message, "error");
-  }
+  // Redirect to connect page
+  window.location.href = "../html/connect.html";
 }
 
 // Handle Account Change
 function handleAccountChange(accounts) {
   if (accounts.length === 0) {
     showToast("Please connect to MetaMask", "error");
+    localStorage.removeItem("walletConnected");
+    localStorage.removeItem("walletAddress");
     window.location.reload();
-  } else {
+  } else if (accounts[0] !== userAccount) {
     userAccount = accounts[0];
+    localStorage.setItem("walletAddress", userAccount);
     window.location.reload();
+  }
+}
+
+// Check Wallet Connection
+async function checkWalletConnection() {
+  const walletConnected = localStorage.getItem("walletConnected");
+  const walletAddress = localStorage.getItem("walletAddress");
+
+  if (walletConnected === "true" && walletAddress) {
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+
+      if (accounts.length > 0 && accounts[0] === walletAddress) {
+        userAccount = walletAddress;
+
+        // Update UI
+        const walletStatus = document.getElementById("wallet-status");
+        if (walletStatus) {
+          walletStatus.innerHTML = `
+            <span>${formatAddress(userAccount)}</span>
+            <span id="user-balance">0.00 ETH</span>
+          `;
+        }
+
+        // Initialize contract
+        if (CONTRACT_ADDRESS !== "YOUR_CONTRACT_ADDRESS_HERE") {
+          contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+          await loadContractData();
+        }
+
+        // Get user balance
+        getUserBalance();
+
+        // Listen for changes
+        window.ethereum.on("accountsChanged", handleAccountChange);
+        window.ethereum.on("chainChanged", () => window.location.reload());
+      } else {
+        localStorage.removeItem("walletConnected");
+        localStorage.removeItem("walletAddress");
+      }
+    } catch (error) {
+      console.error("Error checking wallet connection:", error);
+    }
   }
 }
 

@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ether Lottery - Admin Profile</title>
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/navigation.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/icons.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="stylesheet" href="../css/admin-profile.css" />
+    <link rel="stylesheet" href="../css/modals.css" />
+    <script src="../js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Sidebar Navigation -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <img src="../icon/logo.png" alt="Logo" class="logo-img" />
+            <span>Ether Lottery</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="admin.html" class="sidebar-item">
+            <img
+              src="../icon/tro_choi.png"
+              alt="Lottery"
+              class="sidebar-icon"
+            />
+            <span>Quay Số Trúng Thưởng</span>
+          </a>
+          <a href="admin-history.html" class="sidebar-item">
+            <img
+              src="../icon/lich_su_tham_gia.png"
+              alt="History"
+              class="sidebar-icon"
+            />
+            <span>Lịch Sử</span>
+          </a>
+          <a href="admin-profile.html" class="sidebar-item active">
+            <img src="../icon/ho_so.png" alt="Profile" class="sidebar-icon" />
+            <span>Hồ Sơ Admin</span>
+          </a>
+          <a href="admin-finance.html" class="sidebar-item">
+            <img
+              src="../icon/tui_tien.png"
+              alt="Finance"
+              class="sidebar-icon"
+            />
+            <span>Tài Chính</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="admin-profile">
+            <div class="admin-avatar">
+              <img src="../icon/tai_khoan.png" alt="Admin" />
+            </div>
+            <div class="admin-info">
+              <div class="admin-name">admin</div>
+              <div class="admin-role">Administrator</div>
+            </div>
+          </div>
+          <a href="login.html" class="btn-logout"> <span>←</span> Đăng Xuất </a>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="admin-main">
+        <!-- Top Bar -->
+        <header class="admin-header">
+          <div class="header-left">
+            <h1>
+              <img src="../icon/ho_so.png" alt="Profile" class="inline-icon" />
+              Hồ Sơ Quản Trị Viên
+            </h1>
+          </div>
+          <div class="header-right">
+            <div class="network-status">
+              <span class="status-dot"></span>
+              <span id="network-name">Sepolia Testnet</span>
+            </div>
+            <button class="btn-primary" id="connect-wallet-btn">
+              <span>🦊</span>
+              <span id="wallet-status">Connect MetaMask</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Profile Content -->
+        <div class="admin-content">
+          <!-- Admin Info Card -->
+          <div class="admin-profile-hero">
+            <div class="profile-banner">
+              <div class="banner-overlay"></div>
+            </div>
+            <div class="profile-info-wrapper">
+              <div class="profile-avatar-section">
+                <div class="admin-avatar-large">
+                  <img src="../icon/tai_khoan.png" alt="Admin Avatar" />
+                  <div class="avatar-badge">👑</div>
+                </div>
+                <div class="profile-main-info">
+                  <h1 class="admin-display-name">Administrator</h1>
+                  <p class="admin-username">@admin</p>
+                  <div class="admin-badges">
+                    <span class="badge badge-admin">
+                      <img
+                        src="../icon/bao_mat.png"
+                        alt="Verified"
+                        class="badge-icon"
+                      />
+                      Quản Trị Viên
+                    </span>
+                    <span class="badge badge-verified">
+                      <img
+                        src="../icon/cup.png"
+                        alt="Active"
+                        class="badge-icon"
+                      />
+                      Đã Xác Thực
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-quick-stats">
+                <div class="quick-stat-item">
+                  <div class="quick-stat-value" id="quick-lotteries">0</div>
+                  <div class="quick-stat-label">Vòng Quay</div>
+                </div>
+                <div class="quick-stat-item">
+                  <div class="quick-stat-value" id="quick-players">0</div>
+                  <div class="quick-stat-label">Người Chơi</div>
+                </div>
+                <div class="quick-stat-item">
+                  <div class="quick-stat-value" id="quick-winners">0</div>
+                  <div class="quick-stat-label">Người Thắng</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Grid -->
+          <div class="profile-card account-info-dashboard">
+            <div class="card-header">
+              <h2>
+                <img
+                  src="../icon/tai_khoan.png"
+                  alt="Account"
+                  class="inline-icon"
+                />
+                Thông Tin Tài Khoản
+              </h2>
+            </div>
+
+            <div class="account-info-grid">
+              <div class="account-info-card">
+                <div class="account-card-content">
+                  <div class="account-icon-box">
+                    <div class="info-icon-large">📧</div>
+                  </div>
+                  <div class="account-details">
+                    <div class="account-label">Email</div>
+                    <div class="account-value" id="admin-email">
+                      admin@etherlottery.com
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="account-info-card">
+                <div class="account-card-content">
+                  <div class="account-icon-box">
+                    <div class="info-icon-large">📅</div>
+                  </div>
+                  <div class="account-details">
+                    <div class="account-label">Ngày Tham Gia</div>
+                    <div class="account-value" id="admin-joined">
+                      01/01/2024
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="account-info-card">
+                <div class="account-card-content">
+                  <div class="account-icon-box">
+                    <div class="info-icon-large">🔐</div>
+                  </div>
+                  <div class="account-details">
+                    <div class="account-label">Bảo Mật</div>
+                    <div class="account-value">
+                      <span class="security-badge active">2FA Enabled</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="account-info-card">
+                <div class="account-card-content">
+                  <div class="account-icon-box">
+                    <div class="info-icon-large">⚡</div>
+                  </div>
+                  <div class="account-details">
+                    <div class="account-label">Trạng Thái</div>
+                    <div class="account-value">
+                      <span class="status-badge online">
+                        <span class="status-dot"></span>
+                        Đang Hoạt Động
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Dashboard -->
+          <div class="profile-card stats-dashboard">
+            <div class="card-header">
+              <h2>
+                <img
+                  src="../icon/thong_ke.png"
+                  alt="Stats"
+                  class="inline-icon"
+                />
+                Thống Kê Tổng Quan
+              </h2>
+            </div>
+
+            <div class="stats-grid-modern">
+              <div class="stat-card-modern primary">
+                <div class="stat-card-content">
+                  <div class="stat-icon-modern">
+                    <img src="../icon/tro_choi.png" alt="Lottery" />
+                  </div>
+                  <div class="stat-details">
+                    <div class="stat-value-modern" id="total-lotteries">0</div>
+                    <div class="stat-label-modern">Tổng Vòng Quay</div>
+                    <div class="stat-change positive">↑ 12% tháng này</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card-modern success">
+                <div class="stat-card-content">
+                  <div class="stat-icon-modern">
+                    <img src="../icon/nguoi_choi.png" alt="Players" />
+                  </div>
+                  <div class="stat-details">
+                    <div class="stat-value-modern" id="total-players">0</div>
+                    <div class="stat-label-modern">Tổng Người Chơi</div>
+                    <div class="stat-change positive">↑ 8% tháng này</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card-modern warning">
+                <div class="stat-card-content">
+                  <div class="stat-icon-modern">
+                    <img src="../icon/tui_tien.png" alt="Money" />
+                  </div>
+                  <div class="stat-details">
+                    <div class="stat-value-modern">
+                      <span id="total-volume">0.000</span> ETH
+                    </div>
+                    <div class="stat-label-modern">Tổng Giao Dịch</div>
+                    <div class="stat-change positive">↑ 15% tháng này</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card-modern info">
+                <div class="stat-card-content">
+                  <div class="stat-icon-modern">
+                    <img src="../icon/cup.png" alt="Winners" />
+                  </div>
+                  <div class="stat-details">
+                    <div class="stat-value-modern" id="total-winners">0</div>
+                    <div class="stat-label-modern">Người Thắng</div>
+                    <div class="stat-change neutral">→ Ổn định</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card-modern secondary">
+                <div class="stat-card-content">
+                  <div class="stat-icon-modern">
+                    <img src="../icon/ve.png" alt="Tickets" />
+                  </div>
+                  <div class="stat-details">
+                    <div class="stat-value-modern" id="total-tickets">0</div>
+                    <div class="stat-label-modern">Vé Đã Bán</div>
+                    <div class="stat-change positive">↑ 10% tháng này</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card-modern highlight">
+                <div class="stat-card-content">
+                  <div class="stat-icon-modern">
+                    <img src="../icon/eth_thang.png" alt="Revenue" />
+                  </div>
+                  <div class="stat-details">
+                    <div class="stat-value-modern">
+                      <span id="total-revenue">0.000</span> ETH
+                    </div>
+                    <div class="stat-label-modern">Phí Quản Lý</div>
+                    <div class="stat-change positive">↑ 18% tháng này</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security & Actions -->
+          <div class="profile-grid-actions">
+            <div class="profile-card security-card">
+              <div class="card-header">
+                <h2>
+                  <img
+                    src="../icon/bao_mat.png"
+                    alt="Security"
+                    class="inline-icon"
+                  />
+                  Bảo Mật
+                </h2>
+              </div>
+              <div class="security-list">
+                <div class="security-item enabled">
+                  <div class="security-icon">🔐</div>
+                  <div class="security-info">
+                    <div class="security-title">Xác thực 2 yếu tố</div>
+                    <div class="security-status">Đang bật</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-2fa" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="security-item enabled">
+                  <div class="security-icon">📧</div>
+                  <div class="security-info">
+                    <div class="security-title">Thông báo email</div>
+                    <div class="security-status">Đang bật</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-email" checked />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="security-item disabled">
+                  <div class="security-icon">🔑</div>
+                  <div class="security-info">
+                    <div class="security-title">API Access</div>
+                    <div class="security-status">Đang tắt</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-api" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card actions-card">
+              <div class="card-header">
+                <h2>
+                  <img
+                    src="../icon/cai_dat.png"
+                    alt="Actions"
+                    class="inline-icon"
+                  />
+                  Thao Tác Nhanh
+                </h2>
+              </div>
+              <div class="quick-actions">
+                <button
+                  class="action-btn"
+                  onclick="window.location.href='change-password.html'"
+                >
+                  <img src="../icon/mat_khau.png" alt="Password" />
+                  <span>Đổi Mật Khẩu</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>
+            <img
+              src="../icon/mat_khau.png"
+              alt="Password"
+              class="inline-icon"
+            />
+            Đổi Mật Khẩu
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeModal('changePasswordModal')"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="current-password">Mật khẩu hiện tại</label>
+            <input
+              type="password"
+              id="current-password"
+              placeholder="Nhập mật khẩu hiện tại"
+              title="Mật khẩu hiện tại"
+            />
+          </div>
+          <div class="form-group">
+            <label for="new-password">Mật khẩu mới</label>
+            <input
+              type="password"
+              id="new-password"
+              placeholder="Nhập mật khẩu mới"
+              title="Mật khẩu mới"
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">Xác nhận mật khẩu mới</label>
+            <input
+              type="password"
+              id="confirm-password"
+              placeholder="Nhập lại mật khẩu mới"
+              title="Xác nhận mật khẩu"
+            />
+          </div>
+          <div class="password-requirements">
+            <p>Mật khẩu phải có:</p>
+            <ul>
+              <li>Ít nhất 8 ký tự</li>
+              <li>Chữ hoa và chữ thường</li>
+              <li>Ít nhất 1 số</li>
+              <li>Ít nhất 1 ký tự đặc biệt</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-secondary"
+            onclick="closeModal('changePasswordModal')"
+          >
+            Hủy
+          </button>
+          <button class="btn-primary" onclick="changePassword()">
+            Đổi Mật Khẩu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login History Modal -->
+    <div id="loginHistoryModal" class="modal">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2>
+            <img
+              src="../icon/lich_su_tham_gia.png"
+              alt="History"
+              class="inline-icon"
+            />
+            Lịch Sử Đăng Nhập
+          </h2>
+          <button class="modal-close" onclick="closeModal('loginHistoryModal')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="login-history-list">
+            <div class="history-item">
+              <div class="history-icon success">🖥️</div>
+              <div class="history-details">
+                <div class="history-device">Windows - Chrome</div>
+                <div class="history-location">Hà Nội, Việt Nam</div>
+                <div class="history-ip">IP: 123.456.789.012</div>
+              </div>
+              <div class="history-time">
+                <div class="history-date">09/12/2025</div>
+                <div class="history-clock">14:30</div>
+              </div>
+              <div class="history-status current">Hiện tại</div>
+            </div>
+            <div class="history-item">
+              <div class="history-icon info">📱</div>
+              <div class="history-details">
+                <div class="history-device">iPhone - Safari</div>
+                <div class="history-location">Hồ Chí Minh, Việt Nam</div>
+                <div class="history-ip">IP: 192.168.1.100</div>
+              </div>
+              <div class="history-time">
+                <div class="history-date">08/12/2025</div>
+                <div class="history-clock">09:15</div>
+              </div>
+              <div class="history-status">Thành công</div>
+            </div>
+            <div class="history-item">
+              <div class="history-icon success">🖥️</div>
+              <div class="history-details">
+                <div class="history-device">Windows - Firefox</div>
+                <div class="history-location">Đà Nẵng, Việt Nam</div>
+                <div class="history-ip">IP: 103.200.20.30</div>
+              </div>
+              <div class="history-time">
+                <div class="history-date">07/12/2025</div>
+                <div class="history-clock">18:45</div>
+              </div>
+              <div class="history-status">Thành công</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary" onclick="closeModal('loginHistoryModal')">
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup Data Modal -->
+    <div id="backupDataModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>
+            <img src="../icon/tro_choi.png" alt="Backup" class="inline-icon" />
+            Sao Lưu Dữ Liệu
+          </h2>
+          <button class="modal-close" onclick="closeModal('backupDataModal')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="backup-info">
+            <p>Sao lưu toàn bộ dữ liệu quản trị viên bao gồm:</p>
+            <ul class="backup-list">
+              <li>✓ Thông tin tài khoản</li>
+              <li>✓ Lịch sử vòng quay</li>
+              <li>✓ Danh sách người chơi</li>
+              <li>✓ Dữ liệu giao dịch</li>
+              <li>✓ Cài đặt hệ thống</li>
+            </ul>
+          </div>
+          <div class="backup-options">
+            <div class="backup-option">
+              <input
+                type="radio"
+                id="backup-json"
+                name="backup-format"
+                value="json"
+                checked
+                title="Định dạng JSON"
+              />
+              <label for="backup-json">
+                <div class="option-title">JSON</div>
+                <div class="option-desc">Định dạng dữ liệu chuẩn</div>
+              </label>
+            </div>
+            <div class="backup-option">
+              <input
+                type="radio"
+                id="backup-csv"
+                name="backup-format"
+                value="csv"
+                title="Định dạng CSV"
+              />
+              <label for="backup-csv">
+                <div class="option-title">CSV</div>
+                <div class="option-desc">Dễ đọc với Excel</div>
+              </label>
+            </div>
+          </div>
+          <div class="last-backup">
+            <p>Sao lưu gần nhất: <strong>05/12/2025 - 10:30</strong></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('backupDataModal')">
+            Hủy
+          </button>
+          <button class="btn-primary" onclick="backupData()">Tải Xuống</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout All Modal -->
+    <div id="logoutAllModal" class="modal">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h2>
+            <img src="../icon/xoa.png" alt="Logout" class="inline-icon" />
+            Đăng Xuất Tất Cả
+          </h2>
+          <button class="modal-close" onclick="closeModal('logoutAllModal')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="warning-box">
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-text">
+              <p><strong>Cảnh báo!</strong></p>
+              <p>
+                Hành động này sẽ đăng xuất khỏi tất cả các thiết bị đang đăng
+                nhập.
+              </p>
+              <p>Bạn sẽ cần đăng nhập lại trên tất cả các thiết bị.</p>
+            </div>
+          </div>
+          <div class="logout-summary">
+            <p>Số thiết bị đang hoạt động: <strong>3 thiết bị</strong></p>
+            <ul>
+              <li>Windows - Chrome (Hiện tại)</li>
+              <li>iPhone - Safari</li>
+              <li>Windows - Firefox</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('logoutAllModal')">
+            Hủy
+          </button>
+          <button class="btn-danger" onclick="logoutAll()">
+            Đăng Xuất Tất Cả
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/lottery.js"></script>
+    <script>
+      // Load admin profile data
+      document.addEventListener("DOMContentLoaded", async () => {
+        // Load stats from localStorage
+        const adminStats = JSON.parse(
+          localStorage.getItem("adminStats") ||
+            '{"lotteries":0,"players":0,"volume":0,"winners":0,"tickets":0,"revenue":0}'
+        );
+
+        document.getElementById("total-lotteries").textContent =
+          adminStats.lotteries || 0;
+        document.getElementById("quick-lotteries").textContent =
+          adminStats.lotteries || 0;
+        document.getElementById("total-players").textContent =
+          adminStats.players || 0;
+        document.getElementById("quick-players").textContent =
+          adminStats.players || 0;
+        document.getElementById("total-volume").textContent = (
+          adminStats.volume || 0
+        ).toFixed(3);
+        document.getElementById("total-winners").textContent =
+          adminStats.winners || 0;
+        document.getElementById("quick-winners").textContent =
+          adminStats.winners || 0;
+        document.getElementById("total-tickets").textContent =
+          adminStats.tickets || 0;
+        document.getElementById("total-revenue").textContent = (
+          adminStats.revenue || 0
+        ).toFixed(3);
+      });
+
+      // Modal functions
+      function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add("show");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove("show");
+        document.body.style.overflow = "auto";
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        if (event.target.classList.contains("modal")) {
+          event.target.classList.remove("show");
+          document.body.style.overflow = "auto";
+        }
+      };
+
+      // Change Password
+      function changePassword() {
+        const currentPassword =
+          document.getElementById("current-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmPassword =
+          document.getElementById("confirm-password").value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          alert("Vui lòng điền đầy đủ thông tin");
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          alert("Mật khẩu xác nhận không khớp");
+          return;
+        }
+
+        if (newPassword.length < 8) {
+          alert("Mật khẩu phải có ít nhất 8 ký tự");
+          return;
+        }
+
+        // Simulate password change
+        alert("Đổi mật khẩu thành công!");
+        closeModal("changePasswordModal");
+        document.getElementById("current-password").value = "";
+        document.getElementById("new-password").value = "";
+        document.getElementById("confirm-password").value = "";
+      }
+
+      // Backup Data
+      function backupData() {
+        const format = document.querySelector(
+          'input[name="backup-format"]:checked'
+        ).value;
+        const adminStats = JSON.parse(
+          localStorage.getItem("adminStats") || "{}"
+        );
+
+        const backupData = {
+          exportDate: new Date().toISOString(),
+          format: format,
+          data: {
+            adminInfo: {
+              email: "admin@etherlottery.com",
+              joinDate: "01/01/2024",
+              role: "Administrator",
+            },
+            stats: adminStats,
+            exportTime: new Date().toLocaleString("vi-VN"),
+          },
+        };
+
+        const dataStr =
+          format === "json"
+            ? JSON.stringify(backupData, null, 2)
+            : convertToCSV(backupData);
+
+        const blob = new Blob([dataStr], {
+          type: format === "json" ? "application/json" : "text/csv",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `admin-backup-${Date.now()}.${format}`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        alert("Đã tải xuống file sao lưu!");
+        closeModal("backupDataModal");
+      }
+
+      function convertToCSV(data) {
+        return (
+          "Email,Join Date,Role,Export Time\n" +
+          `${data.data.adminInfo.email},${data.data.adminInfo.joinDate},${data.data.adminInfo.role},${data.data.exportTime}`
+        );
+      }
+
+      // Logout All
+      function logoutAll() {
+        if (confirm("Bạn có chắc chắn muốn đăng xuất tất cả thiết bị?")) {
+          localStorage.clear();
+          alert("Đã đăng xuất khỏi tất cả thiết bị!");
+          closeModal("logoutAllModal");
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1000);
+        }
+      }
+    </script>
+  </body>
+</html>

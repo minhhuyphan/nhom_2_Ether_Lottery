@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ether Lottery - Tài Chính</title>
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/navigation.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/icons.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="stylesheet" href="../css/admin-profile.css" />
+    <link rel="stylesheet" href="../css/admin-finance.css" />
+    <script src="../js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Sidebar Navigation -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <img src="../icon/logo.png" alt="Logo" class="logo-img" />
+            <span>Ether Lottery</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="admin.html" class="sidebar-item">
+            <img
+              src="../icon/tro_choi.png"
+              alt="Lottery"
+              class="sidebar-icon"
+            />
+            <span>Quay Số Trúng Thưởng</span>
+          </a>
+          <a href="admin-history.html" class="sidebar-item">
+            <img
+              src="../icon/lich_su_tham_gia.png"
+              alt="History"
+              class="sidebar-icon"
+            />
+            <span>Lịch Sử</span>
+          </a>
+          <a href="admin-profile.html" class="sidebar-item">
+            <img src="../icon/ho_so.png" alt="Profile" class="sidebar-icon" />
+            <span>Hồ Sơ Admin</span>
+          </a>
+          <a href="admin-finance.html" class="sidebar-item active">
+            <img
+              src="../icon/tui_tien.png"
+              alt="Finance"
+              class="sidebar-icon"
+            />
+            <span>Tài Chính</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <a
+            href="admin-profile.html"
+            class="admin-profile"
+            style="cursor: pointer; text-decoration: none"
+          >
+            <div class="admin-avatar">
+              <img src="../icon/tai_khoan.png" alt="Admin" />
+            </div>
+            <div class="admin-info">
+              <div class="admin-name">admin</div>
+              <div class="admin-role">Administrator</div>
+            </div>
+          </a>
+          <a href="login.html" class="btn-logout"> <span>←</span> Đăng Xuất </a>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="admin-main">
+        <!-- Top Bar -->
+        <header class="admin-header">
+          <div class="header-left">
+            <h1>
+              <img
+                src="../icon/tui_tien.png"
+                alt="Finance"
+                class="inline-icon"
+              />
+              Quản Lý Tài Chính
+            </h1>
+          </div>
+          <div class="header-right">
+            <div class="network-status">
+              <span class="status-dot"></span>
+              <span id="network-name">Sepolia Testnet</span>
+            </div>
+            <button class="btn-primary" id="connect-wallet-btn">
+              <span>🦊</span>
+              <span id="wallet-status">Connect MetaMask</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Finance Content -->
+        <div class="admin-content">
+          <!-- Wallet Overview -->
+          <div class="finance-hero">
+            <div class="profile-card wallet-card-large">
+              <div class="card-header">
+                <h2>
+                  <img
+                    src="../icon/tui_tien.png"
+                    alt="Wallet"
+                    class="inline-icon"
+                  />
+                  Ví Quản Trị
+                </h2>
+                <div class="wallet-actions">
+                  <button class="btn-secondary">
+                    <img
+                      src="../icon/coppy.png"
+                      alt="Refresh"
+                      class="btn-icon"
+                    />
+                    Làm Mới
+                  </button>
+                </div>
+              </div>
+              <div class="wallet-info">
+                <div class="wallet-balance-display">
+                  <div class="balance-label">Số Dư Hiện Tại</div>
+                  <div class="balance-amount" id="admin-balance">
+                    0.0000 ETH
+                  </div>
+                  <div class="balance-usd" id="admin-balance-usd">
+                    ~ $0.00 USD
+                  </div>
+                  <div class="balance-actions">
+                    <button class="balance-action-btn deposit">
+                      <img src="../icon/tui_tien.png" alt="Deposit" />
+                      <span>Nạp Tiền</span>
+                    </button>
+                    <button class="balance-action-btn withdraw">
+                      <img src="../icon/eth_thang.png" alt="Withdraw" />
+                      <span>Rút Tiền</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="wallet-details-grid">
+                  <div class="wallet-address-box">
+                    <div class="address-label">Địa Chỉ Ví Admin</div>
+                    <div class="address-value" id="admin-wallet-address">
+                      Chưa kết nối
+                    </div>
+                    <button
+                      class="btn-copy-inline"
+                      id="copy-address"
+                      title="Copy"
+                    >
+                      <img src="../icon/coppy.png" alt="Copy" />
+                    </button>
+                  </div>
+                  <div class="wallet-network-info">
+                    <div class="network-item">
+                      <span class="network-label">Mạng:</span>
+                      <span class="network-value" id="admin-network"
+                        >Sepolia Testnet</span
+                      >
+                    </div>
+                    <div class="network-item">
+                      <span class="network-label">Hợp Đồng:</span>
+                      <span
+                        class="network-value contract-short"
+                        id="contract-address"
+                        >0x0000...0000</span
+                      >
+                      <button
+                        class="btn-copy-inline"
+                        id="copy-contract"
+                        title="Copy"
+                      >
+                        <img src="../icon/coppy.png" alt="Copy" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Stats -->
+          <div class="finance-stats-grid">
+            <div class="finance-stat-card income">
+              <div class="stat-header">
+                <div class="stat-icon">
+                  <img src="../icon/eth_thang.png" alt="Income" />
+                </div>
+                <div class="stat-trend positive">↑ 15%</div>
+              </div>
+              <div class="stat-body">
+                <div class="stat-value">
+                  <span id="total-income">0.000</span> ETH
+                </div>
+                <div class="stat-label">Tổng Thu Nhập</div>
+                <div class="stat-description">Từ phí quản lý</div>
+              </div>
+            </div>
+
+            <div class="finance-stat-card expense">
+              <div class="stat-header">
+                <div class="stat-icon">
+                  <img src="../icon/tui_tien.png" alt="Expense" />
+                </div>
+                <div class="stat-trend negative">↓ 8%</div>
+              </div>
+              <div class="stat-body">
+                <div class="stat-value">
+                  <span id="total-expense">0.000</span> ETH
+                </div>
+                <div class="stat-label">Tổng Chi Phí</div>
+                <div class="stat-description">Gas fees & vận hành</div>
+              </div>
+            </div>
+
+            <div class="finance-stat-card volume">
+              <div class="stat-header">
+                <div class="stat-icon">
+                  <img src="../icon/tro_choi.png" alt="Volume" />
+                </div>
+                <div class="stat-trend positive">↑ 22%</div>
+              </div>
+              <div class="stat-body">
+                <div class="stat-value">
+                  <span id="total-volume">0.000</span> ETH
+                </div>
+                <div class="stat-label">Khối Lượng Giao Dịch</div>
+                <div class="stat-description">Tổng ETH đã xử lý</div>
+              </div>
+            </div>
+
+            <div class="finance-stat-card profit">
+              <div class="stat-header">
+                <div class="stat-icon">
+                  <img src="../icon/cup.png" alt="Profit" />
+                </div>
+                <div class="stat-trend positive">↑ 18%</div>
+              </div>
+              <div class="stat-body">
+                <div class="stat-value">
+                  <span id="total-profit">0.000</span> ETH
+                </div>
+                <div class="stat-label">Lợi Nhuận Ròng</div>
+                <div class="stat-description">Thu nhập - Chi phí</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction History -->
+          <div class="profile-card transaction-card">
+            <div class="card-header">
+              <h2>
+                <img
+                  src="../icon/lich_su_tham_gia.png"
+                  alt="Transactions"
+                  class="inline-icon"
+                />
+                Lịch Sử Giao Dịch
+              </h2>
+              <div class="transaction-filters">
+                <select class="filter-select" id="tx-filter">
+                  <option value="all">Tất cả</option>
+                  <option value="deposit">Nạp tiền</option>
+                  <option value="withdraw">Rút tiền</option>
+                  <option value="fee">Phí quản lý</option>
+                  <option value="prize">Giải thưởng</option>
+                </select>
+                <button class="btn-secondary">
+                  <img src="../icon/coppy.png" alt="Export" class="btn-icon" />
+                  Xuất
+                </button>
+              </div>
+            </div>
+
+            <div class="transaction-table">
+              <div class="table-header">
+                <div class="th-time">Thời Gian</div>
+                <div class="th-type">Loại</div>
+                <div class="th-from">Từ</div>
+                <div class="th-to">Đến</div>
+                <div class="th-amount">Số Tiền</div>
+                <div class="th-status">Trạng Thái</div>
+              </div>
+
+              <div class="transaction-list" id="transaction-list">
+                <div class="transaction-row">
+                  <div class="td-time">
+                    <div class="time-date">09/12/2025</div>
+                    <div class="time-clock">14:32:15</div>
+                  </div>
+                  <div class="td-type">
+                    <span class="type-badge income">Phí Quản Lý</span>
+                  </div>
+                  <div class="td-from">
+                    <span class="address-short">0x1234...5678</span>
+                  </div>
+                  <div class="td-to">
+                    <span class="address-short">0xabcd...ef12</span>
+                  </div>
+                  <div class="td-amount income">
+                    <span class="amount-value">+0.0033 ETH</span>
+                    <span class="amount-usd">$6.60</span>
+                  </div>
+                  <div class="td-status">
+                    <span class="status-badge success">Thành công</span>
+                  </div>
+                </div>
+
+                <div class="transaction-row">
+                  <div class="td-time">
+                    <div class="time-date">09/12/2025</div>
+                    <div class="time-clock">12:15:42</div>
+                  </div>
+                  <div class="td-type">
+                    <span class="type-badge expense">Gas Fee</span>
+                  </div>
+                  <div class="td-from">
+                    <span class="address-short">0xabcd...ef12</span>
+                  </div>
+                  <div class="td-to">
+                    <span class="address-short">Network</span>
+                  </div>
+                  <div class="td-amount expense">
+                    <span class="amount-value">-0.0002 ETH</span>
+                    <span class="amount-usd">$0.40</span>
+                  </div>
+                  <div class="td-status">
+                    <span class="status-badge success">Thành công</span>
+                  </div>
+                </div>
+
+                <div class="transaction-row">
+                  <div class="td-time">
+                    <div class="time-date">08/12/2025</div>
+                    <div class="time-clock">18:45:20</div>
+                  </div>
+                  <div class="td-type">
+                    <span class="type-badge income">Giải Thưởng</span>
+                  </div>
+                  <div class="td-from">
+                    <span class="address-short">Contract</span>
+                  </div>
+                  <div class="td-to">
+                    <span class="address-short">0x9999...1111</span>
+                  </div>
+                  <div class="td-amount neutral">
+                    <span class="amount-value">0.045 ETH</span>
+                    <span class="amount-usd">$90.00</span>
+                  </div>
+                  <div class="td-status">
+                    <span class="status-badge success">Thành công</span>
+                  </div>
+                </div>
+
+                <div class="transaction-row">
+                  <div class="td-time">
+                    <div class="time-date">08/12/2025</div>
+                    <div class="time-clock">10:22:33</div>
+                  </div>
+                  <div class="td-type">
+                    <span class="type-badge warning">Pending</span>
+                  </div>
+                  <div class="td-from">
+                    <span class="address-short">0x5555...6666</span>
+                  </div>
+                  <div class="td-to">
+                    <span class="address-short">0xabcd...ef12</span>
+                  </div>
+                  <div class="td-amount income">
+                    <span class="amount-value">+0.0025 ETH</span>
+                    <span class="amount-usd">$5.00</span>
+                  </div>
+                  <div class="td-status">
+                    <span class="status-badge pending">Đang xử lý</span>
+                  </div>
+                </div>
+
+                <div class="transaction-row">
+                  <div class="td-time">
+                    <div class="time-date">07/12/2025</div>
+                    <div class="time-clock">16:10:05</div>
+                  </div>
+                  <div class="td-type">
+                    <span class="type-badge income">Phí Quản Lý</span>
+                  </div>
+                  <div class="td-from">
+                    <span class="address-short">0x7777...8888</span>
+                  </div>
+                  <div class="td-to">
+                    <span class="address-short">0xabcd...ef12</span>
+                  </div>
+                  <div class="td-amount income">
+                    <span class="amount-value">+0.0040 ETH</span>
+                    <span class="amount-usd">$8.00</span>
+                  </div>
+                  <div class="td-status">
+                    <span class="status-badge success">Thành công</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="load-more-section">
+              <button class="btn-secondary load-more-btn">
+                <img src="../icon/xu_ly.png" alt="Load" class="btn-icon" />
+                Tải Thêm Giao Dịch
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../js/lottery.js"></script>
+    <script>
+      // Load finance data
+      document.addEventListener("DOMContentLoaded", async () => {
+        // Load wallet info
+        if (typeof window.ethereum !== "undefined") {
+          const accounts = await window.ethereum.request({
+            method: "eth_accounts",
+          });
+
+          if (accounts.length > 0) {
+            const adminAddress = accounts[0];
+            document.getElementById("admin-wallet-address").textContent =
+              adminAddress;
+
+            // Get balance
+            const web3 = new Web3(window.ethereum);
+            const balance = await web3.eth.getBalance(adminAddress);
+            const balanceInEth = web3.utils.fromWei(balance, "ether");
+            const balanceText = parseFloat(balanceInEth).toFixed(4) + " ETH";
+            document.getElementById("admin-balance").textContent = balanceText;
+
+            // Update USD value
+            const usdValue = (parseFloat(balanceInEth) * 2000).toFixed(2);
+            document.getElementById("admin-balance-usd").textContent =
+              "~ $" + usdValue + " USD";
+          }
+        }
+
+        // Load financial stats from localStorage
+        const financeStats = JSON.parse(
+          localStorage.getItem("financeStats") ||
+            '{"income":0.125,"expense":0.018,"volume":2.450,"profit":0.107}'
+        );
+
+        document.getElementById("total-income").textContent = (
+          financeStats.income || 0
+        ).toFixed(3);
+        document.getElementById("total-expense").textContent = (
+          financeStats.expense || 0
+        ).toFixed(3);
+        document.getElementById("total-volume").textContent = (
+          financeStats.volume || 0
+        ).toFixed(3);
+        document.getElementById("total-profit").textContent = (
+          financeStats.profit || 0
+        ).toFixed(3);
+
+        // Copy to clipboard functionality
+        document
+          .getElementById("copy-address")
+          ?.addEventListener("click", () => {
+            const address = document.getElementById(
+              "admin-wallet-address"
+            ).textContent;
+            if (address !== "Chưa kết nối") {
+              navigator.clipboard.writeText(address);
+              showToast("Đã copy địa chỉ ví!", "success");
+            }
+          });
+
+        document
+          .getElementById("copy-contract")
+          ?.addEventListener("click", () => {
+            const contract =
+              document.getElementById("contract-address").textContent;
+            navigator.clipboard.writeText(contract);
+            showToast("Đã copy địa chỉ hợp đồng!", "success");
+          });
+      });
+
+      // Toast notification function
+      function showToast(message, type = "success") {
+        const toast = document.createElement("div");
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: ${type === "success" ? "#10b981" : "#ef4444"};
+          color: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          z-index: 10000;
+          animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.animation = "slideOut 0.3s ease";
+          setTimeout(() => toast.remove(), 300);
+        }, 2000);
+      }
+    </script>
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+    </style>
+  </body>
+</html>
