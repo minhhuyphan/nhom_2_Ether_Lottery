@@ -119,69 +119,44 @@
               </div>
 
               <div class="draw-animation">
-                <div class="number-slots">
-                  <div class="slot-container">
-                    <div class="number-slot spinning" id="slot-1">
-                      <span class="number">-</span>
-                    </div>
+                <div class="lottery-machine">
+                  <div class="number-display-slots">
+                    <div class="number-slot" id="slot-1"><span>1</span></div>
+                    <div class="number-slot" id="slot-2"><span>2</span></div>
+                    <div class="number-slot" id="slot-3"><span>3</span></div>
+                    <div class="number-slot" id="slot-4"><span>4</span></div>
+                    <div class="number-slot" id="slot-5"><span>5</span></div>
+                    <div class="number-slot" id="slot-6"><span>6</span></div>
                   </div>
-                  <div class="slot-container">
-                    <div class="number-slot spinning" id="slot-2">
-                      <span class="number">-</span>
-                    </div>
-                  </div>
-                  <div class="slot-container">
-                    <div class="number-slot spinning" id="slot-3">
-                      <span class="number">-</span>
-                    </div>
-                  </div>
-                  <div class="slot-container">
-                    <div class="number-slot spinning" id="slot-4">
-                      <span class="number">-</span>
-                    </div>
-                    <div class="slot-glow"></div>
-                  </div>
-                  <div class="slot-container">
-                    <div class="number-slot spinning" id="slot-5">
-                      <span class="number">-</span>
-                    </div>
-                    <div class="slot-glow"></div>
-                  </div>
-                  <div class="slot-container">
-                    <div class="number-slot spinning" id="slot-6">
-                      <span class="number">-</span>
-                    </div>
-                    <div class="slot-glow"></div>
-                  </div>
-                </div>
 
-                <button class="btn-draw" id="btn-draw">
-                  <span class="btn-text">QUAY NGAY</span>
-                  <span class="btn-loading hidden">
-                    <img
-                      src="../icon/xu_ly.png"
-                      alt="Loading"
-                      class="btn-icon-loading"
-                    />
-                    Đang quay...
-                  </span>
-                </button>
-              </div>
+                  <button class="btn-draw" id="btn-draw">
+                    <span class="btn-text">QUAY NGAY</span>
+                    <span class="btn-loading hidden">
+                      <img
+                        src="../icon/xu_ly.png"
+                        alt="Loading"
+                        class="btn-icon-loading"
+                      />
+                      Đang quay...
+                    </span>
+                  </button>
 
-              <div class="draw-info">
-                <div class="info-box">
-                  <div class="info-label">Phiên hiện tại:</div>
-                  <div class="info-value" id="current-round">#1234</div>
-                </div>
-                <div class="info-box">
-                  <div class="info-label">Tổng giải thưởng:</div>
-                  <div class="info-value prize-value" id="prize-amount">
-                    5.00 ETH
+                  <div class="draw-info">
+                    <div class="info-box">
+                      <div class="info-label">Phiên hiện tại:</div>
+                      <div class="info-value" id="current-round">#1234</div>
+                    </div>
+                    <div class="info-box">
+                      <div class="info-label">Tổng giải thưởng:</div>
+                      <div class="info-value prize-value" id="prize-amount">
+                        5.00 ETH
+                      </div>
+                    </div>
+                    <div class="info-box">
+                      <div class="info-label">Người trúng:</div>
+                      <div class="info-value" id="winner-count">0</div>
+                    </div>
                   </div>
-                </div>
-                <div class="info-box">
-                  <div class="info-label">Người trúng:</div>
-                  <div class="info-value" id="winner-count">0</div>
                 </div>
               </div>
             </div>

@@ -55,24 +55,16 @@ function setupDrawButton() {
         btnDraw.querySelector(".btn-text").classList.add("hidden");
         btnDraw.querySelector(".btn-loading").classList.remove("hidden");
 
-        // Remove old glows
-        document
-          .querySelectorAll(".slot-glow")
-          .forEach((glow) => glow.remove());
-
-        // Start spinning animation with random numbers
+        // Get all number slots (6 slots at the top)
         const slots = document.querySelectorAll(".number-slot");
 
-        // Create spinning intervals for each slot
+        // Start spinning animation with random numbers
         const intervals = [];
-        slots.forEach((slot, index) => {
+        slots.forEach((slot) => {
           slot.classList.add("spinning");
-          // Random number animation (00-99)
           const interval = setInterval(() => {
-            const randomNum = Math.floor(Math.random() * 100);
-            slot.querySelector(".number").textContent = randomNum
-              .toString()
-              .padStart(2, "0");
+            const randomNum = Math.floor(Math.random() * 10);
+            slot.querySelector("span").textContent = randomNum;
           }, 100);
           intervals.push(interval);
         });
@@ -80,9 +72,9 @@ function setupDrawButton() {
         // Spin for 2 seconds
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // Generate random winning numbers (00-99)
+        // Generate random winning numbers (0-9 for each of 6 slots)
         const winningNumbers = Array.from({ length: 6 }, () =>
-          Math.floor(Math.random() * 100)
+          Math.floor(Math.random() * 10)
         );
 
         // Stop spinning one by one with delay
@@ -93,30 +85,14 @@ function setupDrawButton() {
           clearInterval(intervals[i]);
 
           slots[i].classList.remove("spinning");
-          slots[i].querySelector(".number").textContent = winningNumbers[i]
-            .toString()
-            .padStart(2, "0");
-
-          // Add glow effect - normal glow for first 3, gold glow for last 3
-          const glowDiv = document.createElement("div");
-          if (i < 3) {
-            glowDiv.className = "slot-normal";
-          } else {
-            glowDiv.className = "slot-glow";
-          }
-          slots[i].parentElement.appendChild(glowDiv);
+          slots[i].querySelector("span").textContent = winningNumbers[i];
         }
 
         // Wait a bit then show result
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Show success message
-        const winningPart = winningNumbers.slice(3).join(" ");
-        alert(
-          `🎉 Số trúng thưởng: ${winningNumbers.join(
-            " "
-          )}\n\nSố may mắn: ${winningPart}`
-        );
+        alert(`🎉 Số trúng thưởng: ${winningNumbers.join(" ")}`);
 
         addResultToHistory(winningNumbers);
 
@@ -124,7 +100,6 @@ function setupDrawButton() {
         btnDraw.querySelector(".btn-text").classList.remove("hidden");
         btnDraw.querySelector(".btn-loading").classList.add("hidden");
       } catch (error) {
-        console.error("Error drawing lottery:", error);
         alert("Có lỗi xảy ra khi quay số!");
         btnDraw.disabled = false;
         btnDraw.querySelector(".btn-text").classList.remove("hidden");

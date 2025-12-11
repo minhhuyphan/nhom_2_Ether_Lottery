@@ -315,99 +315,125 @@
   margin-bottom: 40px;
 }
 
-.number-slots {
+/* Lottery Machine Styles */
+.lottery-machine {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 32px;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
 }
 
-.slot-container {
-  position: relative;
+.number-display-slots {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  width: 100%;
 }
 
 .number-slot {
-  width: 90px;
-  height: 90px;
+  width: 100px;
+  height: 120px;
   background: linear-gradient(
     135deg,
-    rgba(168, 85, 247, 0.4),
-    rgba(236, 72, 153, 0.4)
+    rgba(40, 30, 20, 0.95) 0%,
+    rgba(60, 45, 30, 0.95) 100%
   );
-  border: 3px solid var(--primary-purple);
-  border-radius: 16px;
+  border: 3px solid rgba(255, 215, 0, 0.5);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+  box-shadow: inset 0 3px 12px rgba(0, 0, 0, 0.7),
+    0 8px 25px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.2);
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-.number-slot .number {
-  font-size: 48px;
+.number-slot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 215, 0, 0.15) 0%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  pointer-events: none;
+}
+
+.number-slot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.number-slot span {
+  font-size: 64px;
   font-weight: 900;
-  color: white;
-  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, #ffd700 0%, #ffed4e 40%, #ffa500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 10px rgba(255, 215, 0, 0.7));
+  font-family: "Arial Black", "Impact", sans-serif;
+  position: relative;
+  z-index: 1;
 }
 
-.number-slot.spinning {
-  animation: slotSpin 0.5s linear infinite;
+.btn-draw {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffa500 100%);
+  border: none;
+  padding: 20px 80px;
+  border-radius: 50px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #1a1510;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5),
+    0 0 50px rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-@keyframes slotSpin {
-  0%,
-  100% {
+.btn-draw:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6),
+    0 0 60px rgba(255, 215, 0, 0.4);
+}
+
+.draw-info {
+  display: flex;
+  gap: 50px;
+  justify-content: center;
+  width: 100%;
+}
+
+.number-slot.spinning span {
+  animation: numberRoll 0.1s linear infinite;
+}
+
+@keyframes numberRoll {
+  0% {
     transform: translateY(0);
   }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.slot-glow {
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  background: linear-gradient(
-    135deg,
-    var(--primary-gold),
-    var(--primary-purple)
-  );
-  border-radius: 18px;
-  opacity: 0.6;
-  filter: blur(8px);
-  z-index: -1;
-  animation: glowPulse 2s ease-in-out infinite;
-}
-
-/* Normal glow for first 3 slots */
-.slot-normal {
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.6),
-    rgba(236, 72, 153, 0.6)
-  );
-  border-radius: 18px;
-  opacity: 0.5;
-  filter: blur(8px);
-  z-index: -1;
-  animation: glowPulse 2s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%,
   100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
+    transform: translateY(-100%);
   }
 }
 
