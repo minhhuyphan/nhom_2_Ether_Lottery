@@ -1,0 +1,194 @@
+/* Spin Controls Wrapper - Integrated Layout */
+.spin-controls-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.bet-section,
+.auto-spin-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.bet-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-gold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin-bottom: 2px;
+}
+
+.bet-input-group,
+.auto-spin-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(0, 0, 0, 0.2)
+  );
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 6px 10px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(255, 215, 0, 0.1);
+}
+
+/* Select Dropdown Styles */
+.bet-select,
+.auto-spin-select {
+  width: 120px;
+  padding: 8px 12px;
+  border: 2px solid var(--primary-gold);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  color: var(--primary-gold);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(255, 215, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffd700' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Style for dropdown options */
+.bet-select option,
+.auto-spin-select option {
+  background: #1a1a1a;
+  color: var(--primary-gold);
+  padding: 10px;
+  font-weight: 600;
+}
+
+.bet-select:hover,
+.auto-spin-select:hover {
+  border-color: #ffe066;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(255, 215, 0, 0.3);
+  background: linear-gradient(145deg, #333, #222);
+}
+
+.bet-select:focus,
+.auto-spin-select:focus {
+  outline: none;
+  border-color: #ffe066;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(255, 215, 0, 0.4);
+  background: linear-gradient(145deg, #333, #222);
+}
+
+.bet-select:disabled,
+.auto-spin-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auto-spin-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-gold);
+  margin-left: 6px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.auto-spin-count.hidden {
+  display: none;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  font-size: 1rem;
+  z-index: 10000;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-info {
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--secondary-blue)
+  );
+  border-left: 4px solid var(--primary-blue);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, var(--success-green), #28a745);
+  border-left: 4px solid var(--success-green);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, var(--error-red), #dc3545);
+  border-left: 4px solid var(--error-red);
+}
+
+.toast-warning {
+  background: linear-gradient(135deg, var(--warning-orange), #fd7e14);
+  border-left: 4px solid var(--warning-orange);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .spin-controls-wrapper {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .bet-section,
+  .auto-spin-section {
+    width: 100%;
+  }
+
+  .bet-input-group,
+  .auto-spin-group {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .bet-select,
+  .auto-spin-select {
+    width: 110px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .spin-controls-wrapper {
+    gap: 15px;
+  }
+
+  .bet-select,
+  .auto-spin-select {
+    width: 100px;
+    font-size: 0.85rem;
+  }
+}
