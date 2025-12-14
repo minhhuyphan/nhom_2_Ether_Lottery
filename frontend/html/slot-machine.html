@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blockchain Lucky Spin - Nổ Hũ</title>
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/navigation.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/icons.css" />
+    <link rel="stylesheet" href="../css/slot-machine.css" />
+    <link rel="stylesheet" href="../css/bet-controls.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <script src="../js/theme.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Top Navigation -->
+      <nav class="top-nav">
+        <div class="nav-container">
+          <div class="nav-left">
+            <div class="logo">
+              <img src="../icon/logo.png" alt="Logo" class="logo-img" />
+              <span>Ether Lottery</span>
+            </div>
+            <div class="network-status">
+              <span class="status-dot"></span>
+              <span id="network-name">Sepolia Testnet</span>
+            </div>
+          </div>
+          <div class="nav-right">
+            <button class="btn-primary" id="connect-wallet-btn">
+              <span>🦊</span>
+              <span id="wallet-status">Connect MetaMask</span>
+            </button>
+            <a href="notifications.html" class="icon-btn" title="Thông báo">
+              <img
+                src="../icon/thong_bao.png"
+                alt="Notifications"
+                class="nav-icon-img"
+              />
+            </a>
+            <a href="profile.html" class="icon-btn" title="Profile">
+              <img
+                src="../icon/tai_khoan.png"
+                alt="Profile"
+                class="nav-icon-img"
+              />
+            </a>
+            <a href="settings.html" class="icon-btn" title="Settings">
+              <img
+                src="../icon/cai_dat.png"
+                alt="Settings"
+                class="nav-icon-img"
+              />
+            </a>
+            <a href="index.html" class="btn-secondary">← Trở về</a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="container slot-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+          <div class="slot-header">
+            <h1 class="slot-title">
+              <span>🎰</span>
+              Blockchain Lucky Spin
+            </h1>
+            <p class="slot-subtitle">Nổ Hũ May Mắn - Chơi để thắng lớn!</p>
+          </div>
+        </section>
+
+        <!-- Game Section -->
+        <div class="slot-game">
+          <!-- Balance and Jackpot -->
+          <div class="balance-section">
+            <div class="balance-card">
+              <span class="balance-label">Số dư ví:</span>
+              <span class="balance-amount" id="balance-amount">0.00 ETH</span>
+            </div>
+            <div class="jackpot-card">
+              <span class="jackpot-label">Jackpot:</span>
+              <span class="jackpot-amount" id="jackpot-amount">0.00 ETH</span>
+            </div>
+          </div>
+
+          <!-- Slot Machine -->
+          <div class="slot-machine">
+            <div class="slot-display">
+              <div class="slot-reel" id="reel1">
+                <img src="../icon/nohu/rong.png" alt="7" class="slot-image" />
+              </div>
+              <div class="slot-reel" id="reel2">
+                <img src="../icon/nohu/rong.png" alt="7" class="slot-image" />
+              </div>
+              <div class="slot-reel" id="reel3">
+                <img src="../icon/nohu/rong.png" alt="7" class="slot-image" />
+              </div>
+            </div>
+
+            <!-- Spin Controls with Bet Amount and Auto Spin -->
+            <div class="spin-controls-wrapper">
+              <!-- Left Side: Bet Amount Controls -->
+              <div class="bet-section">
+                <label class="bet-label">Mức cược:</label>
+                <div class="bet-input-group">
+                  <select
+                    id="bet-amount"
+                    class="bet-select"
+                    aria-label="Chọn mức cược"
+                  >
+                    <option value="0.001">0.001 ETH</option>
+                    <option value="0.005">0.005 ETH</option>
+                    <option value="0.01">0.01 ETH</option>
+                    <option value="0.05">0.05 ETH</option>
+                    <option value="0.1">0.1 ETH</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Center: Spin Button -->
+              <button class="btn-spin" id="spin-btn">
+                <span class="btn-text">QUAY NGAY</span>
+                <span class="btn-loading hidden">
+                  <img
+                    src="../icon/xu_ly.png"
+                    alt="Processing"
+                    class="btn-icon-loading"
+                  />
+                  ĐANG QUAY...
+                </span>
+              </button>
+
+              <!-- Right Side: Auto Spin Controls -->
+              <div class="auto-spin-section">
+                <label class="bet-label">Auto quay:</label>
+                <div class="auto-spin-group">
+                  <select
+                    id="auto-spins"
+                    class="auto-spin-select"
+                    aria-label="Chọn số vòng tự động quay"
+                  >
+                    <option value="0">Tắt</option>
+                    <option value="5">5 vòng</option>
+                    <option value="10">10 vòng</option>
+                    <option value="20">20 vòng</option>
+                    <option value="50">50 vòng</option>
+                    <option value="100">100 vòng</option>
+                  </select>
+                  <span class="auto-spin-count hidden">(0/0)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Game Rules -->
+          <div class="rules-section">
+            <h3>Luật Chơi:</h3>
+            <ul>
+              <li>Giá mỗi lượt quay: 0.001 ETH</li>
+              <li>Nếu 3 hình giống nhau: Nổ Hũ! Thắng 10x tiền cược</li>
+              <li>Nếu 2 hình giống nhau: Thắng lớn! Thắng 5x tiền cược</li>
+              <li>Kết quả hoàn toàn ngẫu nhiên trên Blockchain</li>
+              <li>Minh bạch, không thể can thiệp</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+
+      <!-- Win Modal -->
+      <div id="win-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>🎉 CHÚC MỪNG! 🎉</h2>
+          </div>
+          <div class="modal-body">
+            <p class="win-message" id="win-message">Bạn đã thắng!</p>
+            <p class="win-amount">
+              Thắng: <span id="win-modal-amount">0.00 ETH</span>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-primary" id="close-win-modal-btn">
+              Tuyệt vời!
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Jackpot Modal -->
+      <div id="jackpot-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>🎉 CHÚC MỪNG! 🎉</h2>
+          </div>
+          <div class="modal-body">
+            <p class="jackpot-message">NỔ HŨ SIÊU KHỔNG LỒ!</p>
+            <p class="jackpot-amount">
+              Thắng: <span id="win-amount">0.01 ETH</span>
+            </p>
+            <p class="jackpot-celebration">🎊 🎉 🎊</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-primary" id="close-modal-btn">Tuyệt vời!</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="../js/slot-machine.js"></script>
+  </body>
+</html>
