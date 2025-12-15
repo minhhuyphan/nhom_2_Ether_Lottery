@@ -62,39 +62,34 @@ if (registerForm) {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+      showMessage("Vui lòng nhập email hợp lệ", "error");
+      return;
+    }
+
     // Show loading
     btnRegister.classList.add("loading");
     btnRegister.disabled = true;
 
     try {
-      // Simulate registration (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Gọi API đăng ký
+      const result = await authApi.register(username, email, password);
 
-      // Check if username already exists (demo)
-      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
-      if (existingUsers.some((u) => u.username === username)) {
-        throw new Error("Tên đăng nhập đã tồn tại");
+      if (result.success) {
+        showMessage("Đăng ký thành công! Đang chuyển hướng...", "success");
+
+        // Redirect dựa trên role
+        setTimeout(() => {
+          const user = result.data.user;
+          if (user.role === "admin") {
+            window.location.href = "admin.html";
+          } else {
+            window.location.href = "index.html";
+          }
+        }, 1500);
       }
-
-      if (existingUsers.some((u) => u.email === email)) {
-        throw new Error("Email đã được sử dụng");
-      }
-
-      // Save user (demo - replace with real API)
-      existingUsers.push({
-        username,
-        email,
-        password, // In production, never store plain passwords!
-        createdAt: new Date().toISOString(),
-      });
-      localStorage.setItem("users", JSON.stringify(existingUsers));
-
-      showMessage("Đăng ký thành công! Đang chuyển hướng...", "success");
-
-      // Redirect to login
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 1500);
     } catch (error) {
       showMessage(error.message, "error");
       btnRegister.classList.remove("loading");
@@ -137,9 +132,11 @@ function showMessage(message, type = "error") {
 }
 
 // Check if already logged in
-if (localStorage.getItem("userRole")) {
-  const role = localStorage.getItem("userRole");
-  window.location.href = role === "admin" ? "admin.html" : "index.html";
+if (typeof authApi !== 'undefined' && authApi.isLoggedIn()) {
+  const user = authApi.getCurrentUser();
+  if (user) {
+    window.location.href = user.role === "admin" ? "admin.html" : "index.html";
+  }
 }
 
 // Add animations

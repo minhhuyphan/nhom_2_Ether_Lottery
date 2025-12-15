@@ -1,5 +1,34 @@
 // Settings Page JavaScript
 
+// Logout Button Handler
+const logoutBtn = document.getElementById("logout-btn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+      try {
+        // Gọi API logout nếu có authApi
+        if (typeof authApi !== 'undefined') {
+          await authApi.logout();
+        } else {
+          // Fallback: xóa localStorage thủ công
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('username');
+          localStorage.removeItem('userRole');
+        }
+        
+        // Chuyển về trang đăng nhập
+        window.location.href = "login.html";
+      } catch (error) {
+        console.error("Logout error:", error);
+        // Vẫn xóa local storage và redirect
+        localStorage.clear();
+        window.location.href = "login.html";
+      }
+    }
+  });
+}
+
 // Profile Dropdown Toggle
 const profileBtn = document.getElementById("profile-btn");
 const profileDropdown = document.getElementById("profile-dropdown");

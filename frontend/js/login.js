@@ -37,20 +37,21 @@ if (loginForm) {
     btnLogin.disabled = true;
 
     try {
-      // Simulate login (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Gọi API đăng nhập
+      const result = await authApi.login(username, password);
 
-      // Demo authentication
-      if (username === "admin" && password === "admin") {
-        localStorage.setItem("userRole", "admin");
-        localStorage.setItem("username", username);
-        window.location.href = "admin.html";
-      } else if (username && password) {
-        localStorage.setItem("userRole", "user");
-        localStorage.setItem("username", username);
-        window.location.href = "index.html";
-      } else {
-        throw new Error("Sai tên đăng nhập hoặc mật khẩu");
+      if (result.success) {
+        showMessage("Đăng nhập thành công! Đang chuyển hướng...", "success");
+
+        // Redirect dựa trên role
+        setTimeout(() => {
+          const user = result.data.user;
+          if (user.role === "admin") {
+            window.location.href = "admin.html";
+          } else {
+            window.location.href = "index.html";
+          }
+        }, 1000);
       }
     } catch (error) {
       showMessage(error.message, "error");
@@ -92,9 +93,11 @@ function showMessage(message, type = "error") {
 }
 
 // Check if already logged in
-if (localStorage.getItem("userRole")) {
-  const role = localStorage.getItem("userRole");
-  window.location.href = role === "admin" ? "admin.html" : "index.html";
+if (typeof authApi !== 'undefined' && authApi.isLoggedIn()) {
+  const user = authApi.getCurrentUser();
+  if (user) {
+    window.location.href = user.role === "admin" ? "admin.html" : "index.html";
+  }
 }
 
 // Add animations
