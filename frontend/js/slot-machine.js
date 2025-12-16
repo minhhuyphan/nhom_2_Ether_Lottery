@@ -280,6 +280,12 @@ class SlotMachine {
   }
 
   async startSpin() {
+    // If auto spinning, stop it when manual spin is clicked
+    if (this.isAutoSpinning) {
+      this.stopAutoSpin();
+      return;
+    }
+
     if (this.isSpinning) return;
 
     // Check if user has enough balance
