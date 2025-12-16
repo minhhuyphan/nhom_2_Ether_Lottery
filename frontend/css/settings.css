@@ -494,6 +494,21 @@
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
 }
 
+/* Logout Item Special Styling */
+.admin-content .setting-item.logout-item {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.05),
+    rgba(15, 23, 42, 0.8)
+  );
+}
+
+.admin-content .setting-item.logout-item:hover {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
 .admin-content .setting-info {
   flex: 1;
 }
