@@ -92,14 +92,6 @@ function showMessage(message, type = "error") {
   }, 3000);
 }
 
-// Check if already logged in
-if (typeof authApi !== 'undefined' && authApi.isLoggedIn()) {
-  const user = authApi.getCurrentUser();
-  if (user) {
-    window.location.href = user.role === "admin" ? "admin.html" : "index.html";
-  }
-}
-
 // Add animations
 const style = document.createElement("style");
 style.textContent = `
