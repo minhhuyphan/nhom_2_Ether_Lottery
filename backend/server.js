@@ -6,6 +6,7 @@ require("dotenv").config();
 const connectDB = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const lotteryRoutes = require("./routes/lotteryRoutes");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/lottery", lotteryRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

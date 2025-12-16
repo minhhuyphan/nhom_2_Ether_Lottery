@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ether Lottery - Blockchain Lottery</title>
     <!-- Modular CSS -->
-    <link rel="stylesheet" href="../css/variables.css" />
-    <link rel="stylesheet" href="../css/base.css" />
-    <link rel="stylesheet" href="../css/navigation.css" />
-    <link rel="stylesheet" href="../css/buttons.css" />
-    <link rel="stylesheet" href="../css/icons.css" />
-    <link rel="stylesheet" href="../css/lottery.css" />
-    <link rel="stylesheet" href="../css/components.css" />
-    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="stylesheet" href="../css/variables.css?v=2" />
+    <link rel="stylesheet" href="../css/base.css?v=2" />
+    <link rel="stylesheet" href="../css/navigation.css?v=2" />
+    <link rel="stylesheet" href="../css/buttons.css?v=2" />
+    <link rel="stylesheet" href="../css/icons.css?v=2" />
+    <link rel="stylesheet" href="../css/lottery.css?v=2" />
+    <link rel="stylesheet" href="../css/components.css?v=2" />
+    <link rel="stylesheet" href="../css/responsive.css?v=2" />
     <script src="../js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
   </head>
@@ -110,6 +110,71 @@
                 <div class="time-box">
                   <span class="time-value" id="years">00</span>
                 </div>
+              </div>
+            </div>
+
+            <!-- Number Selection -->
+            <div class="number-selection">
+              <h3 class="selection-title">
+                <img src="../icon/ve.png" alt="Number" class="inline-icon" />
+                Chọn Số Dò (6 chữ số)
+              </h3>
+              <div class="number-inputs">
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="number-input"
+                  id="num1"
+                  placeholder="0"
+                  pattern="[0-9]"
+                />
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="number-input"
+                  id="num2"
+                  placeholder="0"
+                  pattern="[0-9]"
+                />
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="number-input"
+                  id="num3"
+                  placeholder="0"
+                  pattern="[0-9]"
+                />
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="number-input"
+                  id="num4"
+                  placeholder="0"
+                  pattern="[0-9]"
+                />
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="number-input"
+                  id="num5"
+                  placeholder="0"
+                  pattern="[0-9]"
+                />
+                <input
+                  type="text"
+                  maxlength="1"
+                  class="number-input"
+                  id="num6"
+                  placeholder="0"
+                  pattern="[0-9]"
+                />
+              </div>
+              <button class="btn-random" id="random-number-btn">
+                🎲 Chọn Ngẫu Nhiên
+              </button>
+              <div class="selected-number">
+                <span class="label">Số đã chọn:</span>
+                <span class="value" id="selected-number">------</span>
               </div>
             </div>
 
@@ -256,6 +321,6 @@
       <div id="toast-container" class="toast-container"></div>
     </div>
 
-    <script src="../js/lottery.js"></script>
+    <script src="../js/lottery.js?v=2"></script>
   </body>
 </html>

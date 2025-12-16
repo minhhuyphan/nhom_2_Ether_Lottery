@@ -8,121 +8,121 @@ let isAdmin = false;
 const CONTRACT_ADDRESS = "0x327F9548dC8599c634598f4a1b538C6351CfB22f"; // Sepolia Testnet
 const CONTRACT_ABI = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: "address",
+        name: "player",
+        type: "address",
+      },
     ],
-    "name": "PlayerEntered",
-    "type": "event"
+    name: "PlayerEntered",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "winner",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "winner",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
     ],
-    "name": "WinnerPicked",
-    "type": "event"
+    name: "WinnerPicked",
+    type: "event",
   },
   {
-    "inputs": [],
-    "name": "enter",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    inputs: [],
+    name: "enter",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "entranceFee",
-    "outputs": [
+    inputs: [],
+    name: "entranceFee",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getBalance",
-    "outputs": [
+    inputs: [],
+    name: "getBalance",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getPlayers",
-    "outputs": [
+    inputs: [],
+    name: "getPlayers",
+    outputs: [
       {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "manager",
-    "outputs": [
+    inputs: [],
+    name: "manager",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "pickWinner",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: "pickWinner",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_fee",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "_fee",
+        type: "uint256",
+      },
     ],
-    "name": "setEntranceFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    name: "setEntranceFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ];
 
 // Sepolia Testnet Config (Ethereum)
@@ -133,10 +133,10 @@ const SEPOLIA_NETWORK = {
   nativeCurrency: {
     name: "Sepolia ETH",
     symbol: "ETH",
-    decimals: 18
+    decimals: 18,
   },
   rpcUrls: ["https://eth-sepolia.g.alchemy.com/v2/demo"],
-  blockExplorerUrls: ["https://sepolia.etherscan.io"]
+  blockExplorerUrls: ["https://sepolia.etherscan.io"],
 };
 
 // ETH to USD conversion rate (update from API in production)
@@ -146,14 +146,14 @@ let ethToUsd = 2000;
 document.addEventListener("DOMContentLoaded", async () => {
   loadTheme();
   setupEventListeners();
-  
+
   // Check if MetaMask is installed
   if (typeof window.ethereum !== "undefined") {
     web3 = new Web3(window.ethereum);
-    
+
     // Check and switch to Sepolia network
     await ensureSepoliaNetwork();
-    
+
     // Then check wallet connection
     await checkWalletConnection();
   } else {
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function ensureSepoliaNetwork() {
   try {
     const chainId = await window.ethereum.request({ method: "eth_chainId" });
-    
+
     if (chainId !== SEPOLIA_CHAIN_ID) {
       console.log("Switching to Sepolia testnet...");
       await switchToSepoliaNetwork();
@@ -183,7 +183,7 @@ async function switchToSepoliaNetwork() {
   try {
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: SEPOLIA_CHAIN_ID }]
+      params: [{ chainId: SEPOLIA_CHAIN_ID }],
     });
     console.log("✅ Switched to Sepolia testnet");
     updateNetworkDisplay("Sepolia Testnet");
@@ -203,7 +203,7 @@ async function addSepoliaNetwork() {
   try {
     await window.ethereum.request({
       method: "wallet_addEthereumChain",
-      params: [SEPOLIA_NETWORK]
+      params: [SEPOLIA_NETWORK],
     });
     console.log("✅ Sepolia network added");
     updateNetworkDisplay("Sepolia Testnet");
@@ -226,6 +226,8 @@ function setupEventListeners() {
   const connectBtn = document.getElementById("connect-wallet-btn");
   const enterBtn = document.getElementById("enter-lottery-btn");
   const pickWinnerBtn = document.getElementById("pick-winner-btn");
+  const randomBtn = document.getElementById("random-number-btn");
+  const numberInputs = document.querySelectorAll(".number-input");
 
   if (connectBtn) {
     connectBtn.addEventListener("click", connectWallet);
@@ -238,13 +240,84 @@ function setupEventListeners() {
   if (pickWinnerBtn) {
     pickWinnerBtn.addEventListener("click", pickWinner);
   }
+
+  if (randomBtn) {
+    randomBtn.addEventListener("click", generateRandomNumber);
+  }
+
+  // Auto-focus next input
+  numberInputs.forEach((input, index) => {
+    input.addEventListener("input", (e) => {
+      const value = e.target.value;
+
+      // Only allow numbers
+      if (!/^\d$/.test(value) && value !== "") {
+        e.target.value = "";
+        return;
+      }
+
+      // Update selected number display
+      updateSelectedNumber();
+
+      // Auto focus next input
+      if (value && index < numberInputs.length - 1) {
+        numberInputs[index + 1].focus();
+      }
+    });
+
+    // Handle backspace to go to previous input
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !e.target.value && index > 0) {
+        numberInputs[index - 1].focus();
+      }
+    });
+  });
+}
+
+// Generate Random Number
+function generateRandomNumber() {
+  const numberInputs = document.querySelectorAll(".number-input");
+  numberInputs.forEach((input) => {
+    input.value = Math.floor(Math.random() * 10);
+  });
+  updateSelectedNumber();
+  showToast("Đã chọn số ngẫu nhiên!", "success");
+}
+
+// Update Selected Number Display
+function updateSelectedNumber() {
+  const numberInputs = document.querySelectorAll(".number-input");
+  const selectedNumberDisplay = document.getElementById("selected-number");
+
+  let number = "";
+  numberInputs.forEach((input) => {
+    number += input.value || "-";
+  });
+
+  if (selectedNumberDisplay) {
+    selectedNumberDisplay.textContent = number;
+  }
+
+  return number.replace(/-/g, "");
+}
+
+// Get Selected Number
+function getSelectedNumber() {
+  const number = updateSelectedNumber();
+
+  // Check if all 6 digits are filled
+  if (number.length !== 6) {
+    return null;
+  }
+
+  return number;
 }
 
 // Connect Wallet
 async function connectWallet() {
   // Ensure on Sepolia network first
   await ensureSepoliaNetwork();
-  
+
   // Redirect to connect page
   window.location.href = "../html/connect.html";
 }
@@ -382,7 +455,14 @@ function displayPlayers(players) {
 // Enter Lottery
 async function enterLottery() {
   if (!userAccount) {
-    showToast("Please connect your wallet first", "error");
+    showToast("Vui lòng kết nối ví trước", "error");
+    return;
+  }
+
+  // Check if number is selected
+  const selectedNumber = getSelectedNumber();
+  if (!selectedNumber) {
+    showToast("Vui lòng chọn đủ 6 chữ số!", "error");
     return;
   }
 
@@ -395,26 +475,67 @@ async function enterLottery() {
     btnLoading.classList.remove("hidden");
     btn.disabled = true;
 
-    showToast("Transaction pending... Please confirm in MetaMask", "pending");
+    showToast(
+      "Đang xử lý giao dịch... Vui lòng xác nhận trong MetaMask",
+      "pending"
+    );
 
     const entranceFee = await contract.methods.entranceFee().call();
 
-    await contract.methods.enter().send({
+    // Send blockchain transaction
+    const receipt = await contract.methods.enter().send({
       from: userAccount,
       value: entranceFee,
       gas: 300000,
     });
 
-    showToast("🎉 You entered the lottery successfully!", "success");
+    // Save ticket to backend
+    try {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        const response = await fetch(
+          "http://localhost:5000/api/lottery/buy-ticket",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              ticketNumber: selectedNumber,
+              walletAddress: userAccount,
+              transactionHash: receipt.transactionHash,
+              amount: web3.utils.fromWei(entranceFee, "ether"),
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (!data.success) {
+          console.error("Failed to save ticket:", data.message);
+        }
+      }
+    } catch (saveError) {
+      console.error("Error saving ticket to backend:", saveError);
+      // Don't show error to user since blockchain transaction succeeded
+    }
+
+    showToast(`🎉 Mua vé thành công! Số của bạn: ${selectedNumber}`, "success");
+
+    // Clear number inputs
+    document
+      .querySelectorAll(".number-input")
+      .forEach((input) => (input.value = ""));
+    updateSelectedNumber();
 
     // Reload data
     await loadContractData();
   } catch (error) {
     console.error("Enter lottery error:", error);
     if (error.code === 4001) {
-      showToast("Transaction rejected by user", "error");
+      showToast("Giao dịch bị từ chối", "error");
     } else {
-      showToast("Failed to enter lottery: " + error.message, "error");
+      showToast("Mua vé thất bại: " + error.message, "error");
     }
   } finally {
     const btn = document.getElementById("enter-lottery-btn");

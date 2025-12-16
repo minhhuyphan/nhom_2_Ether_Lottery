@@ -656,3 +656,280 @@
     min-width: 140px;
   }
 }
+
+/* Number Selection Styles */
+.number-selection {
+  background: linear-gradient(
+    135deg,
+    rgba(75, 45, 100, 0.4) 0%,
+    rgba(90, 70, 50, 0.3) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(168, 85, 247, 0.4);
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.number-selection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(168, 85, 247, 0.1),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.selection-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.selection-title .inline-icon {
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.number-inputs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.number-input {
+  width: 55px;
+  height: 70px;
+  font-size: 2.2rem;
+  font-weight: 900;
+  text-align: center;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 3px solid rgba(168, 85, 247, 0.4);
+  border-radius: 16px;
+  color: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.number-input:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: #a855f7;
+  background: linear-gradient(
+    145deg,
+    rgba(168, 85, 247, 0.15),
+    rgba(168, 85, 247, 0.05)
+  );
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.25),
+    0 8px 25px rgba(168, 85, 247, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: scale(1.08) translateY(-3px);
+  animation: inputGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes inputGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.25),
+      0 8px 25px rgba(168, 85, 247, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.4),
+      0 8px 35px rgba(168, 85, 247, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.number-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-random {
+  width: 100%;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-random::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-random:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-random:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(168, 85, 247, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background-position: 100% 0;
+}
+
+.btn-random:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+}
+
+.selected-number {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.15),
+    rgba(236, 72, 153, 0.1)
+  );
+  border-radius: 12px;
+  border: 2px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.selected-number::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 70%
+  );
+  animation: slideShine 3s infinite;
+}
+
+@keyframes slideShine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.selected-number .label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+
+.selected-number .value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #a855f7, #ec4899, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 6px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+  filter: drop-shadow(0 2px 8px rgba(168, 85, 247, 0.4));
+}
+
+/* Responsive cho number selection */
+@media (max-width: 768px) {
+  .number-inputs {
+    gap: 6px;
+  }
+
+  .number-input {
+    width: 48px;
+    height: 62px;
+    font-size: 1.8rem;
+  }
+
+  .selection-title {
+    font-size: 1rem;
+  }
+
+  .selected-number .value {
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+  }
+}

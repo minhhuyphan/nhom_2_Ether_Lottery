@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ether Lottery - Profile</title>
     <!-- Modular CSS -->
-    <link rel="stylesheet" href="../css/variables.css" />
-    <link rel="stylesheet" href="../css/base.css" />
-    <link rel="stylesheet" href="../css/navigation.css" />
-    <link rel="stylesheet" href="../css/buttons.css" />
-    <link rel="stylesheet" href="../css/icons.css" />
-    <link rel="stylesheet" href="../css/components.css" />
-    <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="stylesheet" href="../css/profile.css" />
+    <link rel="stylesheet" href="../css/variables.css?v=3" />
+    <link rel="stylesheet" href="../css/base.css?v=3" />
+    <link rel="stylesheet" href="../css/navigation.css?v=3" />
+    <link rel="stylesheet" href="../css/buttons.css?v=3" />
+    <link rel="stylesheet" href="../css/icons.css?v=3" />
+    <link rel="stylesheet" href="../css/components.css?v=3" />
+    <link rel="stylesheet" href="../css/responsive.css?v=3" />
+    <link rel="stylesheet" href="../css/profile.css?v=3" />
     <script src="../js/theme.js"></script>
   </head>
   <body>
@@ -233,6 +233,24 @@
               </div>
             </div>
 
+            <!-- My Tickets Section -->
+            <div class="profile-section">
+              <h2>
+                <img src="../icon/ve.png" alt="Tickets" class="inline-icon" />
+                Vé Số Đã Mua
+              </h2>
+
+              <div class="tickets-container">
+                <div class="tickets-list" id="tickets-list">
+                  <!-- Tickets will be loaded here -->
+                  <div class="loading-tickets">Đang tải...</div>
+                </div>
+                <div class="pagination" id="tickets-pagination">
+                  <!-- Pagination will be added here -->
+                </div>
+              </div>
+            </div>
+
             <!-- History Section -->
             <div class="profile-section">
               <h2>
@@ -323,7 +341,7 @@
 
     <!-- Web3.js for MetaMask integration -->
     <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/profile.js"></script>
+    <script src="../js/api.js?v=3"></script>
+    <script src="../js/profile.js?v=3"></script>
   </body>
 </html>

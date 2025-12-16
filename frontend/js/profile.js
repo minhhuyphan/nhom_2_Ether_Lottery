@@ -132,6 +132,149 @@ async function loadStats() {
   } catch (error) {
     console.error("Error loading stats:", error);
   }
+
+  // Load tickets
+  await loadMyTickets();
+}
+
+// Load my tickets
+async function loadMyTickets(page = 1) {
+  try {
+    const response = await apiCall(
+      `/api/lottery/my-tickets?page=${page}&limit=6`,
+      "GET"
+    );
+
+    if (response.success) {
+      displayTickets(response.data.tickets);
+      displayPagination(response.data.pagination);
+    }
+  } catch (error) {
+    console.error("Error loading tickets:", error);
+    document.getElementById("tickets-list").innerHTML = `
+      <div class="no-tickets">
+        <div class="no-tickets-icon">🎫</div>
+        <p>Chưa có vé nào</p>
+      </div>
+    `;
+  }
+}
+
+// Display tickets
+function displayTickets(tickets) {
+  const container = document.getElementById("tickets-list");
+
+  if (!tickets || tickets.length === 0) {
+    container.innerHTML = `
+      <div class="no-tickets">
+        <div class="no-tickets-icon">🎫</div>
+        <p>Bạn chưa mua vé nào</p>
+        <p style="margin-top: 10px; opacity: 0.7;">Hãy tham gia ngay để có cơ hội trúng thưởng!</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = tickets
+    .map((ticket) => {
+      const date = new Date(ticket.purchaseDate).toLocaleString("vi-VN");
+      const statusClass = ticket.status;
+      const statusText =
+        {
+          active: "Đang chờ",
+          won: "Trúng thưởng",
+          lost: "Không trúng",
+          pending: "Chờ xử lý",
+        }[ticket.status] || ticket.status;
+
+      return `
+      <div class="ticket-card">
+        <div class="ticket-header">
+          <div class="ticket-number-display">${ticket.ticketNumber}</div>
+          <span class="ticket-status ${statusClass}">${statusText}</span>
+        </div>
+        <div class="ticket-info">
+          <div class="ticket-info-row">
+            <span class="ticket-info-label">Số tiền:</span>
+            <span class="ticket-info-value ticket-amount">${
+              ticket.amount
+            } ETH</span>
+          </div>
+          <div class="ticket-info-row">
+            <span class="ticket-info-label">Ví:</span>
+            <span class="ticket-info-value">${ticket.walletAddress.slice(
+              0,
+              6
+            )}...${ticket.walletAddress.slice(-4)}</span>
+          </div>
+          ${
+            ticket.prizeAmount > 0
+              ? `
+            <div class="ticket-info-row">
+              <span class="ticket-info-label">Giải thưởng:</span>
+              <span class="ticket-info-value ticket-amount">${ticket.prizeAmount} ETH</span>
+            </div>
+          `
+              : ""
+          }
+        </div>
+        <div class="ticket-date">
+          📅 ${date}
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+}
+
+// Display pagination
+function displayPagination(pagination) {
+  const container = document.getElementById("tickets-pagination");
+
+  if (pagination.pages <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  let html = "";
+
+  // Previous button
+  html += `
+    <button class="pagination-btn" ${pagination.page === 1 ? "disabled" : ""} 
+            onclick="loadMyTickets(${pagination.page - 1})">
+      ← Trước
+    </button>
+  `;
+
+  // Page numbers
+  for (let i = 1; i <= pagination.pages; i++) {
+    if (
+      i === 1 ||
+      i === pagination.pages ||
+      (i >= pagination.page - 1 && i <= pagination.page + 1)
+    ) {
+      html += `
+        <button class="pagination-btn ${i === pagination.page ? "active" : ""}" 
+                onclick="loadMyTickets(${i})">
+          ${i}
+        </button>
+      `;
+    } else if (i === pagination.page - 2 || i === pagination.page + 2) {
+      html += `<span style="color: rgba(255,255,255,0.5); padding: 8px;">...</span>`;
+    }
+  }
+
+  // Next button
+  html += `
+    <button class="pagination-btn" ${
+      pagination.page === pagination.pages ? "disabled" : ""
+    } 
+            onclick="loadMyTickets(${pagination.page + 1})">
+      Sau →
+    </button>
+  `;
+
+  container.innerHTML = html;
 }
 
 // Check wallet connection
