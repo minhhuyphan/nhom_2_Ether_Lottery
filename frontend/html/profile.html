@@ -73,6 +73,62 @@
 
           <!-- Profile Card -->
           <div class="profile-card">
+            <!-- User Info Section -->
+            <div class="profile-section">
+              <div class="profile-header-section">
+                <div class="avatar-container">
+                  <img
+                    id="user-avatar"
+                    src="../icon/tai_khoan.png"
+                    alt="Avatar"
+                    class="user-avatar"
+                  />
+                  <button
+                    class="avatar-edit-btn"
+                    id="edit-avatar-btn"
+                    title="Thay đổi avatar"
+                  >
+                    <img src="../icon/cai_dat.png" alt="Edit" />
+                  </button>
+                </div>
+                <div class="user-info-main">
+                  <h2 id="user-username">Loading...</h2>
+                  <p class="user-email" id="user-email">loading@example.com</p>
+                  <span class="user-role-badge" id="user-role">User</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-section">
+              <h2>Thông Tin Tài Khoản</h2>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Tên đăng nhập:</span>
+                  <span class="info-value" id="account-username">-</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Email:</span>
+                  <span class="info-value" id="account-email">-</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Số dư tài khoản:</span>
+                  <span class="info-value" id="account-balance">0 ETH</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Ngày tạo:</span>
+                  <span class="info-value" id="account-created">-</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Lần đăng nhập cuối:</span>
+                  <span class="info-value" id="last-login">-</span>
+                </div>
+              </div>
+            </div>
+
             <div class="profile-section">
               <h2>Thông Tin Ví</h2>
 
@@ -98,6 +154,12 @@
                   </span>
                 </div>
               </div>
+
+              <div class="wallet-actions">
+                <button class="btn-secondary" id="connect-wallet-btn">
+                  Kết nối ví MetaMask
+                </button>
+              </div>
             </div>
 
             <!-- Quick Actions Section -->
@@ -117,6 +179,10 @@
                 >
                   <img src="../icon/mat_khau.png" alt="Password" />
                   <span>Đổi Mật Khẩu</span>
+                </button>
+                <button class="action-btn" id="edit-profile-btn">
+                  <img src="../icon/cai_dat.png" alt="Edit" />
+                  <span>Chỉnh Sửa Profile</span>
                 </button>
               </div>
             </div>
@@ -212,33 +278,52 @@
       </main>
     </div>
 
-    <script src="lottery.js"></script>
-    <script>
-      // Load user profile data
-      document.addEventListener("DOMContentLoaded", async () => {
-        if (typeof window.ethereum !== "undefined" && userAccount) {
-          // Display wallet address
-          document.getElementById("wallet-address").textContent = userAccount;
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Chỉnh Sửa Profile</h2>
+          <button class="close-modal" id="close-edit-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-profile-form">
+            <div class="form-group">
+              <label for="edit-username">Tên đăng nhập</label>
+              <input
+                type="text"
+                id="edit-username"
+                class="form-input"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="edit-email">Email</label>
+              <input type="email" id="edit-email" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label for="edit-avatar">URL Avatar</label>
+              <input
+                type="url"
+                id="edit-avatar"
+                class="form-input"
+                placeholder="https://..."
+              />
+              <small>Để trống nếu không muốn thay đổi</small>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Lưu Thay Đổi</button>
+              <button type="button" class="btn-secondary" id="cancel-edit">
+                Hủy
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-          // Get balance
-          const balance = await web3.eth.getBalance(userAccount);
-          const balanceInEth = web3.utils.fromWei(balance, "ether");
-          document.getElementById("wallet-balance").textContent =
-            parseFloat(balanceInEth).toFixed(4) + " ETH";
-        }
-
-        // Load stats from localStorage
-        const stats = JSON.parse(localStorage.getItem("lotteryStats") || "{}");
-        document.getElementById("total-entries").textContent =
-          stats.entries || 0;
-        document.getElementById("total-wins").textContent = stats.wins || 0;
-        document.getElementById("total-spent").textContent = (
-          stats.spent || 0
-        ).toFixed(4);
-        document.getElementById("total-won").textContent = (
-          stats.won || 0
-        ).toFixed(4);
-      });
-    </script>
+    <!-- Web3.js for MetaMask integration -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/profile.js"></script>
   </body>
 </html>

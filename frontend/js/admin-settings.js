@@ -1,10 +1,16 @@
 // Admin Settings JavaScript
 document.addEventListener("DOMContentLoaded", function () {
+  // Initialize variables first
+  const fontBtns = document.querySelectorAll(".font-btn");
+  const toggles = document.querySelectorAll('.switch input[type="checkbox"]');
+  const numberInputs = document.querySelectorAll(
+    'input[type="number"], input[type="time"]'
+  );
+
   // Load saved settings from localStorage
   loadSettings();
 
   // Font size selector
-  const fontBtns = document.querySelectorAll(".font-btn");
   fontBtns.forEach((btn) => {
     btn.addEventListener("click", function () {
       fontBtns.forEach((b) => b.classList.remove("active"));
@@ -33,7 +39,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Toggle switches - Auto save on change
-  const toggles = document.querySelectorAll('.switch input[type="checkbox"]');
   toggles.forEach((toggle) => {
     toggle.addEventListener("change", function () {
       const settingId = this.id;
@@ -79,9 +84,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Number inputs - Auto save on change
-  const numberInputs = document.querySelectorAll(
-    'input[type="number"], input[type="time"]'
-  );
   numberInputs.forEach((input) => {
     input.addEventListener("change", function () {
       localStorage.setItem(this.id, this.value);
@@ -106,6 +108,32 @@ document.addEventListener("DOMContentLoaded", function () {
     changePasswordBtn.addEventListener("click", function () {
       showChangePasswordModal();
     });
+  }
+
+  // Logout button
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      console.log("Logout button clicked");
+
+      if (confirm("Bạn có chắc muốn đăng xuất?")) {
+        // Clear all auth data
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("username");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userProfile");
+
+        console.log("Cleared localStorage, redirecting...");
+
+        // Redirect to login page immediately
+        window.location.replace("login.html");
+      }
+    });
+  } else {
+    console.error("Logout button not found!");
   }
 
   // Load settings from localStorage

@@ -70,7 +70,6 @@
               <div class="admin-role">Administrator</div>
             </div>
           </div>
-          <a href="login.html" class="btn-logout"> <span>←</span> Đăng Xuất </a>
         </div>
       </aside>
 
@@ -398,6 +397,10 @@
                 </h2>
               </div>
               <div class="quick-actions">
+                <button class="action-btn" id="edit-profile-btn">
+                  <img src="../icon/cai_dat.png" alt="Edit" />
+                  <span>Chỉnh Sửa Profile</span>
+                </button>
                 <button
                   class="action-btn"
                   onclick="window.location.href='change-password.html'"
@@ -805,5 +808,59 @@
         }
       }
     </script>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>
+            <img src="../icon/cai_dat.png" alt="Edit" class="inline-icon" />
+            Chỉnh Sửa Profile
+          </h2>
+          <button class="modal-close" id="close-edit-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-profile-form">
+            <div class="form-group">
+              <label for="edit-username">Tên đăng nhập</label>
+              <input
+                type="text"
+                id="edit-username"
+                class="form-input"
+                placeholder="Nhập tên đăng nhập"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="edit-email">Email</label>
+              <input
+                type="email"
+                id="edit-email"
+                class="form-input"
+                placeholder="Nhập email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="edit-avatar">URL Avatar</label>
+              <input
+                type="url"
+                id="edit-avatar"
+                class="form-input"
+                placeholder="https://..."
+              />
+              <small>Để trống nếu không muốn thay đổi</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="cancel-edit">Hủy</button>
+          <button class="btn-primary" id="save-profile">Lưu Thay Đổi</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/admin-profile.js"></script>
   </body>
 </html>
