@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Notification = require("../models/Notification");
 const scheduleService = require("../services/scheduleService");
 const notificationService = require("../services/notificationService");
-const Web3 = require("web3");
+const { Web3 } = require("web3");
 
 // Web3 setup cho Sepolia
 const web3 = new Web3(
@@ -91,6 +91,49 @@ exports.buyTicket = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Lấy thông tin công khai (prize pool, players)
+// @route   GET /api/lottery/public-info
+// @access  Public (không cần đăng nhập)
+exports.getPublicInfo = async (req, res) => {
+  try {
+    // Lấy tổng số người chơi
+    const totalPlayers = await User.countDocuments({ role: "user" });
+
+    // Lấy tổng giải thưởng (vé active chưa quay)
+    const activeTickets = await Ticket.find({
+      status: "active",
+    }).select("amount");
+
+    const prizePool = activeTickets.reduce(
+      (sum, ticket) => sum + (ticket.amount || 0),
+      0,
+    );
+
+    const totalTickets = activeTickets.length;
+
+    console.log("🎰 Public Info:", {
+      prizePool: prizePool.toFixed(6),
+      totalPlayers,
+      totalTickets,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        prizePool: parseFloat(prizePool.toFixed(6)),
+        totalPlayers,
+        totalTickets,
+      },
+    });
+  } catch (error) {
+    console.error("Get public info error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy thông tin",
     });
   }
 };
