@@ -8,6 +8,9 @@ const {
   deleteNotification,
   deleteAllNotifications,
   broadcastNotification,
+  notifyDrawResults,
+  notifyUpcomingDraw,
+  notifyAllPlayers,
 } = require("../controllers/notificationController");
 const { protect, adminOnly } = require("../middleware/auth");
 
@@ -24,5 +27,8 @@ router.delete("/:id", deleteNotification);
 
 // Admin routes
 router.post("/broadcast", adminOnly, broadcastNotification);
+router.post("/notify-draw-results", adminOnly, notifyDrawResults);
+router.post("/notify-upcoming-draw", adminOnly, notifyUpcomingDraw);
+router.post("/notify-all", adminOnly, notifyAllPlayers);
 
 module.exports = router;

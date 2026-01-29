@@ -1,6 +1,18 @@
 const Ticket = require("../models/Ticket");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const scheduleService = require("../services/scheduleService");
+const notificationService = require("../services/notificationService");
+const Web3 = require("web3");
+
+// Web3 setup cho Sepolia
+const web3 = new Web3(
+  process.env.INFURA_RPC_URL ||
+    "https://sepolia.infura.io/v3/" + process.env.INFURA_API_KEY,
+);
+const contractAddress = process.env.LOTTERY_CONTRACT_ADDRESS;
+const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY;
+const adminWallet = process.env.ADMIN_WALLET_ADDRESS;
 
 // @desc    Mua vé số
 // @route   POST /api/lottery/buy-ticket
@@ -8,6 +20,13 @@ const Notification = require("../models/Notification");
 exports.buyTicket = async (req, res) => {
   try {
     const { ticketNumber, walletAddress, transactionHash, amount } = req.body;
+
+    console.log("📝 Buy ticket request:", {
+      ticketNumber,
+      walletAddress,
+      transactionHash,
+      amount,
+    });
 
     // Validate input
     if (!ticketNumber || !walletAddress || !transactionHash || !amount) {
@@ -40,7 +59,13 @@ exports.buyTicket = async (req, res) => {
       ticketNumber,
       walletAddress: walletAddress.toLowerCase(),
       transactionHash,
-      amount,
+      amount: parseFloat(amount), // Ensure it's a number
+    });
+
+    console.log("✅ Ticket created:", {
+      ticketNumber,
+      amount: ticket.amount,
+      isActive: ticket.isActive,
     });
 
     // Gửi thông báo mua vé thành công
@@ -76,19 +101,42 @@ exports.buyTicket = async (req, res) => {
 exports.getAdminStats = async (req, res) => {
   try {
     const totalPlayers = await User.countDocuments({ role: "user" });
-    const totalTickets = await Ticket.countDocuments({ isActive: true }); // Chỉ vé đang hoạt động
-    const totalRevenue = await Ticket.aggregate([
-      { $match: { isActive: true } }, // Chỉ vé đang hoạt động
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-    const todayWinners = 0; // Sẽ implement sau
+
+    // Lấy chỉ vé ACTIVE (chưa quay)
+    const activeTickets = await Ticket.find({
+      status: "active",
+    }).select("amount");
+    const totalTickets = activeTickets.length;
+
+    // Tính tổng doanh thu từ vé ACTIVE (chưa quay)
+    const totalRevenue = activeTickets.reduce(
+      (sum, ticket) => sum + (ticket.amount || 0),
+      0,
+    );
+
+    // Đếm người thắng hôm nay
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayWinners = await Ticket.countDocuments({
+      status: "won",
+      updatedAt: { $gte: today, $lt: tomorrow },
+    });
+
+    console.log("📊 Admin Stats:");
+    console.log("  - Total Players:", totalPlayers);
+    console.log("  - Tickets Pending Draw:", totalTickets);
+    console.log("  - Prize Pool:", totalRevenue.toFixed(6), "ETH");
+    console.log("  - Today Winners:", todayWinners);
 
     res.json({
       success: true,
       data: {
         totalPlayers,
         totalTickets,
-        totalRevenue: totalRevenue[0]?.total || 0,
+        totalRevenue: parseFloat(totalRevenue.toFixed(6)),
         todayWinners,
       },
     });
@@ -263,6 +311,27 @@ exports.drawLottery = async (req, res) => {
       user.balance += ticket.amount;
       await user.save();
 
+      // Gửi tiền vào ví MetaMask trên blockchain
+      try {
+        console.log(
+          `💸 Gửi tiền thưởng ${ticket.amount} ETH đến ví ${ticket.walletAddress}...`,
+        );
+        const txHash = await sendPrizeToWinner(
+          ticket.walletAddress,
+          ticket.amount,
+        );
+        console.log(`✅ Gửi tiền thành công! TX: ${txHash}`);
+
+        // Lưu transaction hash
+        ticket.prizeTransactionHash = txHash;
+        await ticket.save();
+      } catch (blockchainError) {
+        console.error("❌ Lỗi gửi tiền blockchain:", blockchainError.message);
+        // Vẫn cập nhật trạng thái thắng, nhưng note lỗi blockchain
+        ticket.blockchainError = blockchainError.message;
+        await ticket.save();
+      }
+
       // Tạo thông báo thắng
       try {
         await Notification.create({
@@ -284,6 +353,17 @@ exports.drawLottery = async (req, res) => {
       ticket.drawDate = new Date();
       ticket.winningNumber = winningNumber;
       await ticket.save();
+    }
+
+    // Gửi thông báo cho tất cả người chơi
+    try {
+      await notificationService.notifyDrawResults(
+        winningNumber,
+        winningTickets.reduce((sum, t) => sum + t.amount, 0),
+      );
+      console.log("✅ Draw notifications sent to all players");
+    } catch (notifError) {
+      console.error("Send draw notifications error:", notifError);
     }
 
     res.json({
@@ -416,16 +496,17 @@ exports.getDrawResults = async (req, res) => {
 exports.getAllTickets = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10; // Mặc định 10 vé
     const skip = (page - 1) * limit;
 
-    const tickets = await Ticket.find({ isActive: true }) // Chỉ vé đang hoạt động
+    // Hiển thị TẤT CẢ vé đã mua (tất cả trạng thái)
+    const tickets = await Ticket.find()
       .populate("user", "username email")
       .sort({ purchaseDate: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Ticket.countDocuments({ isActive: true });
+    const total = await Ticket.countDocuments();
 
     res.json({
       success: true,
@@ -447,3 +528,305 @@ exports.getAllTickets = async (req, res) => {
     });
   }
 };
+
+// @desc    Đặt lịch quay số
+// @route   POST /api/lottery/schedule-draw
+// @access  Private/Admin
+exports.scheduleDraw = async (req, res) => {
+  try {
+    console.log("📅 [scheduleDraw] Received schedule-draw request");
+    const { scheduledTime, winningNumbers } = req.body;
+    console.log(
+      `📅 [scheduleDraw] Scheduled time: ${scheduledTime}, Winning numbers: ${winningNumbers}`,
+    );
+
+    // Validate input
+    if (!scheduledTime || !winningNumbers || winningNumbers.length !== 6) {
+      console.log(
+        "📅 [scheduleDraw] Validation failed - missing or invalid data",
+      );
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ thông tin",
+      });
+    }
+
+    // Validate time format (should be a valid date/time)
+    const drawTime = new Date(scheduledTime);
+    if (isNaN(drawTime.getTime())) {
+      console.log("📅 [scheduleDraw] Invalid time format");
+      return res.status(400).json({
+        success: false,
+        message: "Thời gian không hợp lệ",
+      });
+    }
+
+    if (drawTime < new Date()) {
+      console.log("📅 [scheduleDraw] Time in the past");
+      return res.status(400).json({
+        success: false,
+        message: "Thời gian phải trong tương lai",
+      });
+    }
+
+    console.log(
+      `📅 [scheduleDraw] Validation passed, scheduling draw at ${drawTime.toISOString()}`,
+    );
+    const scheduleId = `draw_${Date.now()}`;
+    const winningNumber = winningNumbers.join("");
+
+    // Schedule the draw
+    const drawFunction = async () => {
+      try {
+        console.log(`🎰 Auto-executing scheduled draw: ${scheduleId}`);
+
+        // Get all active tickets
+        const activeTickets = await Ticket.find({ status: "active" }).populate(
+          "user",
+        );
+
+        const winningTickets = [];
+        const losingTickets = [];
+
+        // Find winning tickets
+        for (const ticket of activeTickets) {
+          const ticketLastThree = ticket.ticketNumber.slice(-3);
+          const winningLastThree = winningNumber.slice(-3);
+
+          if (ticketLastThree === winningLastThree) {
+            winningTickets.push(ticket);
+          } else {
+            losingTickets.push(ticket);
+          }
+        }
+
+        // Update winning tickets
+        for (const ticket of winningTickets) {
+          ticket.status = "won";
+          ticket.drawDate = new Date();
+          ticket.winningNumber = winningNumber;
+          ticket.prizeAmount = ticket.amount;
+          await ticket.save();
+
+          // Add prize to user balance
+          const user = await User.findById(ticket.user._id);
+          user.balance += ticket.amount;
+          await user.save();
+
+          // Create win notification
+          try {
+            await Notification.create({
+              user: ticket.user._id,
+              type: "win",
+              title: "Chúc mừng bạn đã thắng!",
+              message: `Bạn đã trúng số ${winningNumber} với giải thưởng ${ticket.amount} ETH`,
+              relatedTicket: ticket._id,
+              isRead: false,
+            });
+          } catch (notifError) {
+            console.error("Notification error:", notifError);
+          }
+        }
+
+        // Update losing tickets
+        for (const ticket of losingTickets) {
+          ticket.status = "lost";
+          ticket.drawDate = new Date();
+          ticket.winningNumber = winningNumber;
+          await ticket.save();
+        }
+
+        // Gửi thông báo kết quả quay cho tất cả người chơi
+        try {
+          await notificationService.notifyDrawResults(
+            winningNumber,
+            winningTickets.reduce((sum, t) => sum + t.amount, 0),
+          );
+          console.log("✅ Scheduled draw notifications sent to all players");
+        } catch (notifError) {
+          console.error("Send draw notifications error:", notifError);
+        }
+
+        console.log(
+          `✅ Scheduled draw ${scheduleId} completed. Winners: ${winningTickets.length}`,
+        );
+      } catch (error) {
+        console.error("Scheduled draw error:", error);
+      }
+    };
+
+    // Schedule the job
+    scheduleService.scheduleDrawLottery(scheduleId, drawTime, drawFunction);
+
+    // Gửi thông báo sắp tới giờ quay cho tất cả người chơi
+    try {
+      const drawTimeStr = drawTime.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      await notificationService.notifyUpcomingDraw(drawTimeStr);
+      console.log("✅ Upcoming draw notification sent");
+    } catch (notifError) {
+      console.error("Send upcoming draw notification error:", notifError);
+    }
+
+    res.json({
+      success: true,
+      message: "Lịch quay số đã được đặt",
+      data: {
+        scheduleId,
+        scheduledTime: drawTime,
+        winningNumber,
+        nextInvocation: scheduleService.getNextInvocationTime(scheduleId),
+      },
+    });
+  } catch (error) {
+    console.error("Schedule draw error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Hủy lịch quay số
+// @route   POST /api/lottery/cancel-scheduled-draw
+// @access  Private/Admin
+exports.cancelScheduledDraw = async (req, res) => {
+  try {
+    const { scheduleId } = req.body;
+
+    if (!scheduleId) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp ID lịch",
+      });
+    }
+
+    const cancelled = scheduleService.cancelScheduledDraw(scheduleId);
+
+    if (!cancelled) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy lịch này",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Lịch quay số đã bị hủy",
+    });
+  } catch (error) {
+    console.error("Cancel scheduled draw error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Lấy danh sách lịch quay số
+// @route   GET /api/lottery/scheduled-draws
+// @access  Private/Admin
+exports.getScheduledDraws = async (req, res) => {
+  try {
+    const scheduledDraws = scheduleService.getScheduledJobs();
+
+    res.json({
+      success: true,
+      data: scheduledDraws,
+    });
+  } catch (error) {
+    console.error("Get scheduled draws error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+/**
+ * Gửi tiền thưởng đến ví MetaMask qua smart contract
+ * @param {string} winnerAddress - Địa chỉ ví MetaMask của người thắng
+ * @param {number} amountETH - Số tiền ETH cần gửi
+ * @returns {string} Transaction hash
+ */
+async function sendPrizeToWinner(winnerAddress, amountETH) {
+  try {
+    if (!contractAddress || !adminPrivateKey || !adminWallet) {
+      throw new Error(
+        "Missing blockchain configuration (CONTRACT_ADDRESS, PRIVATE_KEY, ADMIN_WALLET)",
+      );
+    }
+
+    // Convert ETH to Wei
+    const amountWei = web3.utils.toWei(amountETH.toString(), "ether");
+
+    // Load contract ABI
+    const contractABI = [
+      {
+        inputs: [
+          { internalType: "address", name: "winner", type: "address" },
+          { internalType: "uint256", name: "amount", type: "uint256" },
+        ],
+        name: "sendPrizeToWinner",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    // Get nonce
+    const nonce = await web3.eth.getTransactionCount(adminWallet);
+    console.log(`   Nonce: ${nonce}`);
+
+    // Get gas price
+    const gasPrice = await web3.eth.getGasPrice();
+    console.log(`   Gas price: ${web3.utils.fromWei(gasPrice, "gwei")} Gwei`);
+
+    // Estimate gas
+    const gasEstimate = await contract.methods
+      .sendPrizeToWinner(winnerAddress, amountWei)
+      .estimateGas({ from: adminWallet });
+    console.log(`   Estimated gas: ${gasEstimate}`);
+
+    // Build transaction
+    const tx = {
+      from: adminWallet,
+      to: contractAddress,
+      data: contract.methods
+        .sendPrizeToWinner(winnerAddress, amountWei)
+        .encodeABI(),
+      gas: Math.ceil(gasEstimate * 1.2), // Add 20% buffer
+      gasPrice: gasPrice,
+      nonce: nonce,
+      chainId: 11155111, // Sepolia testnet
+    };
+
+    console.log(`   TX to send:`, {
+      from: tx.from,
+      to: tx.to,
+      amount: web3.utils.fromWei(amountWei, "ether") + " ETH",
+      recipient: winnerAddress,
+    });
+
+    // Sign transaction
+    const signedTx = await web3.eth.accounts.signTransaction(
+      tx,
+      adminPrivateKey,
+    );
+    console.log(`   ✓ Transaction signed`);
+
+    // Send transaction
+    const receipt = await web3.eth.sendSignedTransaction(
+      signedTx.rawTransaction,
+    );
+    console.log(`   ✓ Transaction sent! Hash: ${receipt.transactionHash}`);
+
+    return receipt.transactionHash;
+  } catch (error) {
+    console.error("Error in sendPrizeToWinner:", error.message);
+    throw error;
+  }
+}

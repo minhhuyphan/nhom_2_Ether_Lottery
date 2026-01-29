@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const fontBtns = document.querySelectorAll(".font-btn");
   const toggles = document.querySelectorAll('.switch input[type="checkbox"]');
   const numberInputs = document.querySelectorAll(
-    'input[type="number"], input[type="time"]'
+    'input[type="number"], input[type="time"]',
   );
 
   // Load saved settings from localStorage
@@ -128,8 +128,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         console.log("Cleared localStorage, redirecting...");
 
-        // Redirect to login page immediately
-        window.location.replace("login.html");
+        // Redirect to login page with absolute path
+        window.location.href = "./login.html";
       }
     });
   } else {
@@ -171,6 +171,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeInput = document.getElementById("auto-draw-time");
     if (timeInput) {
       timeInput.disabled = !autoDrawEnabled;
+    }
+
+    // Setup schedule draw if auto-draw is enabled
+    if (autoDrawEnabled) {
+      console.log("✅ Auto draw enabled, setting up schedule...");
+      setupScheduleDraw();
     }
   }
 
@@ -309,5 +315,93 @@ document.addEventListener("DOMContentLoaded", function () {
         toast.remove();
       }, 300);
     }, 3000);
+  }
+
+  // Schedule Draw Functionality
+  const autoDrawToggle = document.getElementById("auto-draw-toggle");
+  const autoDrawTime = document.getElementById("auto-draw-time");
+
+  // Setup schedule draw when toggle auto-draw or time changes
+  if (autoDrawToggle) {
+    autoDrawToggle.addEventListener("change", setupScheduleDraw);
+  }
+
+  if (autoDrawTime) {
+    autoDrawTime.addEventListener("change", setupScheduleDraw);
+  }
+
+  async function setupScheduleDraw() {
+    if (!autoDrawToggle || !autoDrawToggle.checked) {
+      console.log("Auto draw is disabled");
+      return;
+    }
+
+    const timeStr = autoDrawTime?.value;
+    if (!timeStr) {
+      showToast("Vui lòng chọn thời gian", "warning");
+      return;
+    }
+
+    try {
+      // Create a date for today with the selected time
+      const now = new Date();
+      const [hours, minutes] = timeStr.split(":");
+      const scheduledDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hours,
+        minutes,
+        0,
+      );
+
+      // If time has passed today, schedule for tomorrow
+      if (scheduledDate < now) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+
+      // Generate random winning numbers
+      const winningNumbers = [];
+      for (let i = 0; i < 6; i++) {
+        winningNumbers.push(Math.floor(Math.random() * 10));
+      }
+
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        showToast("Bạn cần đăng nhập", "error");
+        return;
+      }
+
+      console.log("Scheduling draw for:", scheduledDate.toISOString());
+
+      const response = await fetch(
+        "http://localhost:5000/api/lottery/schedule-draw",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            scheduledTime: scheduledDate.toISOString(),
+            winningNumbers: winningNumbers,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        showToast(
+          `✅ Đã đặt lịch quay ${timeStr} với số ${winningNumbers.join("")}`,
+          "success",
+        );
+      } else {
+        showToast("❌ Lỗi: " + data.message, "error");
+      }
+    } catch (error) {
+      console.error("Schedule draw error:", error);
+      showToast("Có lỗi xảy ra khi đặt lịch", "error");
+    }
   }
 });

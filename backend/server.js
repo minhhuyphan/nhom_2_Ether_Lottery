@@ -24,7 +24,7 @@ app.use(
       "http://127.0.0.1:5500",
     ],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,6 +44,18 @@ app.get("/api/health", (req, res) => {
     success: true,
     message: "Server is running!",
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Get server time for scheduling
+app.get("/api/server-time", (req, res) => {
+  const now = new Date();
+  res.json({
+    success: true,
+    timestamp: now.toISOString(),
+    unix: Math.floor(now.getTime() / 1000),
+    date: now.toLocaleDateString("vi-VN"),
+    time: now.toLocaleTimeString("vi-VN"),
   });
 });
 
@@ -71,7 +83,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`
 ╔════════════════════════════════════════════╗
 ║     🎰 Ether Lottery Backend Server 🎰     ║

@@ -3,6 +3,8 @@
 let web3;
 let contract;
 let adminAccount = "0xAdmin...1234"; // Mock admin account
+let dashboardRefreshInterval; // Auto-refresh interval
+let serverTimeInterval; // Server time update interval
 
 // Initialize (without MetaMask)
 function initWeb3() {
@@ -14,6 +16,44 @@ function initWeb3() {
   }
 
   loadDashboardData();
+  updateServerTime();
+
+  // Auto-refresh dashboard mỗi 5 giây
+  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
+  dashboardRefreshInterval = setInterval(loadDashboardData, 5000);
+
+  // Update server time mỗi giây
+  if (serverTimeInterval) clearInterval(serverTimeInterval);
+  serverTimeInterval = setInterval(updateServerTime, 1000);
+}
+
+// Update server time display
+async function updateServerTime() {
+  try {
+    const response = await fetch("http://localhost:5000/api/server-time");
+    const data = await response.json();
+
+    console.log("⏰ Server time response:", data);
+
+    const timeElement = document.getElementById("server-time");
+    if (timeElement) {
+      if (data.success && data.time) {
+        timeElement.textContent = data.time;
+      } else {
+        // Fallback: show local time if API fails
+        const now = new Date();
+        timeElement.textContent = now.toLocaleTimeString("vi-VN");
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching server time:", error);
+    // Fallback: show local time
+    const timeElement = document.getElementById("server-time");
+    if (timeElement) {
+      const now = new Date();
+      timeElement.textContent = now.toLocaleTimeString("vi-VN");
+    }
+  }
 }
 
 // Load Dashboard Data
@@ -85,7 +125,7 @@ async function loadDashboardData() {
 
     // Lấy danh sách vé mới được mua
     const ticketsResponse = await fetch(
-      "http://localhost:5000/api/lottery/all-tickets?limit=20&page=1",
+      "http://localhost:5000/api/lottery/all-tickets?limit=10&page=1",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -115,17 +155,18 @@ function updateStats(stats) {
   document.getElementById("total-tickets").textContent =
     stats.totalTickets.toLocaleString();
   document.getElementById("total-revenue").textContent =
-    stats.totalRevenue.toFixed(1) + " ETH";
+    stats.totalRevenue + " ETH";
   document.getElementById("today-winners").textContent = stats.todayWinners;
 
   // Tổng giải thưởng = Tổng doanh thu (100% tiền vé đã bán)
   const prizeAmountElement = document.getElementById("prize-amount");
   if (prizeAmountElement) {
-    prizeAmountElement.textContent = stats.totalRevenue.toFixed(2) + " ETH";
+    prizeAmountElement.textContent = stats.totalRevenue + " ETH";
   }
 }
 
 // Draw Lottery
+
 function setupDrawButton() {
   const btnDraw = document.getElementById("btn-draw");
   const btnRefreshTickets = document.getElementById("btn-refresh-tickets");
@@ -138,7 +179,7 @@ function setupDrawButton() {
 
         const token = localStorage.getItem("authToken");
         const ticketsResponse = await fetch(
-          "http://localhost:5000/api/lottery/all-tickets?limit=20&page=1",
+          "http://localhost:5000/api/lottery/all-tickets?limit=10&page=1",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -226,6 +267,30 @@ function setupDrawButton() {
         console.log("Draw result:", drawData);
 
         if (drawData.success) {
+          // Gửi thông báo cho tất cả người chơi
+          try {
+            console.log("📢 Gửi thông báo kết quả quay...");
+            const notifyResponse = await fetch(
+              "http://localhost:5000/api/notifications/notify-draw-results",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  winningNumber: winningNumbers.join(""),
+                  prizeAmount: drawData.data.prizePool,
+                }),
+              },
+            );
+
+            const notifyData = await notifyResponse.json();
+            console.log("📢 Notification response:", notifyData);
+          } catch (notifyError) {
+            console.error("❌ Error sending notifications:", notifyError);
+          }
+
           // Hiển thị kết quả
           const resultMessage = `
 🎉 Số trúng thưởng: ${winningNumbers.join(" ")}
