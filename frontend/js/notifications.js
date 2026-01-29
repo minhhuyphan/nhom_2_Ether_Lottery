@@ -53,9 +53,11 @@ async function loadNotifications() {
     });
 
     const data = await response.json();
+    console.log("📬 Loaded notifications from API:", data);
 
     if (data.success) {
       allNotifications = data.data.notifications;
+      console.log(`✅ Found ${allNotifications.length} notifications`);
       updateBadgeCounts(data.data.unreadCount, allNotifications.length);
       renderNotifications();
     } else {
@@ -83,11 +85,11 @@ function renderNotifications() {
     filteredNotifications = allNotifications.filter((n) => !n.isRead);
   } else if (currentTab === "lottery") {
     filteredNotifications = allNotifications.filter(
-      (n) => n.type === "lottery" || n.type === "prize"
+      (n) => n.type === "lottery" || n.type === "prize",
     );
   } else if (currentTab === "system") {
     filteredNotifications = allNotifications.filter(
-      (n) => n.type === "system" || n.type === "info"
+      (n) => n.type === "system" || n.type === "info",
     );
   }
 
@@ -128,16 +130,28 @@ function createNotificationElement(notification) {
     <div class="notification-content">
       <div class="notification-header">
         <h3>${escapeHtml(notification.title)}</h3>
-        ${!notification.isRead ? '<span class="notification-badge new">MỚI</span>' : ""}
+        ${
+          !notification.isRead
+            ? '<span class="notification-badge new">MỚI</span>'
+            : ""
+        }
         <span class="notification-badge ${badgeClass}">${badgeText}</span>
       </div>
       <p class="notification-message">${escapeHtml(notification.message)}</p>
       <div class="notification-meta">
-        <span class="notification-time">${formatTime(notification.createdAt)}</span>
-        ${notification.data?.ticketNumber ? `<span class="ticket-info">Vé: ${notification.data.ticketNumber}</span>` : ""}
+        <span class="notification-time">${formatTime(
+          notification.createdAt,
+        )}</span>
+        ${
+          notification.data?.ticketNumber
+            ? `<span class="ticket-info">Vé: ${notification.data.ticketNumber}</span>`
+            : ""
+        }
       </div>
     </div>
-    <button class="btn-notification-close" onclick="deleteNotification('${notification._id}')">×</button>
+    <button class="btn-notification-close" onclick="deleteNotification('${
+      notification._id
+    }')">×</button>
   `;
 
   // Click to mark as read
@@ -359,7 +373,9 @@ function showToast(message, type = "info") {
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <span class="toast-icon">${type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"}</span>
+    <span class="toast-icon">${
+      type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"
+    }</span>
     <span class="toast-message">${message}</span>
   `;
 
