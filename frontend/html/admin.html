@@ -148,6 +148,7 @@
                       <div class="info-value prize-value" id="prize-amount">
                         5.00 ETH
                       </div>
+                      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;" id="server-time">--:-- --</div>
                     </div>
                     <div class="info-box">
                       <div class="info-label">Người trúng:</div>
@@ -255,6 +256,46 @@
             </div>
           </section>
 
+          <!-- Recent Tickets Table -->
+          <section class="tickets-section">
+            <div class="section-header">
+              <h3>
+                <img src="../icon/ve.png" alt="Tickets" class="inline-icon" />
+                Vé Mới Được Mua
+              </h3>
+              <button class="btn-secondary" id="btn-refresh-tickets">
+                Làm mới
+              </button>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table table-tickets">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Người Chơi</th>
+                    <th>Số Vé</th>
+                    <th>Ví</th>
+                    <th>Giá Tiền</th>
+                    <th>Transaction</th>
+                    <th>Ngày Mua</th>
+                    <th>Trạng Thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      colspan="8"
+                      style="text-align: center; color: var(--text-muted)"
+                    >
+                      Đang tải...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           <!-- Recent Players Table -->
           <section class="players-section">
             <div class="section-header">
@@ -270,51 +311,29 @@
             </div>
 
             <div class="table-container">
-              <table class="data-table">
+              <table class="data-table table-users">
                 <thead>
                   <tr>
-                    <th>Địa chỉ ví</th>
-                    <th>Số vé</th>
-                    <th>Số tiền</th>
-                    <th>Thời gian</th>
-                    <th>Trạng thái</th>
+                    <th>#</th>
+                    <th>Tên Người Dùng</th>
+                    <th>Email</th>
+                    <th>Ví</th>
+                    <th>Số Dư</th>
+                    <th>Ngày Tham Gia</th>
+                    <th>Lần Đăng Nhập Cuối</th>
+                    <th>Trạng Thái</th>
                   </tr>
                 </thead>
-                <tbody id="players-table">
+                <tbody>
                   <tr>
-                    <td class="address">0x742d...3a9c</td>
-                    <td>3</td>
-                    <td class="amount">0.033 ETH</td>
-                    <td>2 phút trước</td>
-                    <td><span class="status-badge pending">Chờ quay</span></td>
-                  </tr>
-                  <tr>
-                    <td class="address">0x8f2d...7b1e</td>
                     <td>1</td>
-                    <td class="amount">0.011 ETH</td>
-                    <td>5 phút trước</td>
-                    <td><span class="status-badge pending">Chờ quay</span></td>
-                  </tr>
-                  <tr>
-                    <td class="address">0x3c4a...9d2f</td>
-                    <td>5</td>
-                    <td class="amount">0.055 ETH</td>
-                    <td>12 phút trước</td>
-                    <td><span class="status-badge win">Thắng</span></td>
-                  </tr>
-                  <tr>
-                    <td class="address">0x1a2b...4e5f</td>
-                    <td>2</td>
-                    <td class="amount">0.022 ETH</td>
-                    <td>18 phút trước</td>
-                    <td><span class="status-badge lose">Thua</span></td>
-                  </tr>
-                  <tr>
-                    <td class="address">0x9e8d...6c7b</td>
-                    <td>4</td>
-                    <td class="amount">0.044 ETH</td>
-                    <td>25 phút trước</td>
-                    <td><span class="status-badge lose">Thua</span></td>
+                    <td>player1</td>
+                    <td>player1@email.com</td>
+                    <td>0x742d...3a9c</td>
+                    <td>0.50 ETH</td>
+                    <td>20/01/2026</td>
+                    <td>20/01/2026</td>
+                    <td><span class="badge badge-active">Hoạt động</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -324,6 +343,82 @@
       </main>
     </div>
 
-    <script src="../js/admin.js"></script>
+    <!-- Schedule Draw Modal -->
+    <div class="modal" id="schedule-draw-modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>ĐẶT LỊCH QUAY SỐ</h2>
+          <button class="btn-close" id="btn-close-schedule-modal">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="schedule-date">Ngày quay:</label>
+            <input type="date" id="schedule-date" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label for="schedule-time">Giờ quay:</label>
+            <input type="time" id="schedule-time" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label>Chọn số trúng thưởng:</label>
+            <div class="number-input-group">
+              <input
+                type="number"
+                min="0"
+                max="9"
+                class="schedule-number-input"
+                placeholder="Số 1"
+                required
+              />
+              <input
+                type="number"
+                min="0"
+                max="9"
+                class="schedule-number-input"
+                placeholder="Số 2"
+                required
+              />
+              <input
+                type="number"
+                min="0"
+                max="9"
+                class="schedule-number-input"
+                placeholder="Số 3"
+                required
+              />
+              <input
+                type="number"
+                min="0"
+                max="9"
+                class="schedule-number-input"
+                placeholder="Số 4"
+                required
+              />
+              <input
+                type="number"
+                min="0"
+                max="9"
+                class="schedule-number-input"
+                placeholder="Số 5"
+                required
+              />
+              <input
+                type="number"
+                min="0"
+                max="9"
+                class="schedule-number-input"
+                placeholder="Số 6"
+                required
+              />
+            </div>
+          </div>
+    <script src="../js/admin.js?v=6"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        initWeb3();
+      });
+    </script>
   </body>
 </html>

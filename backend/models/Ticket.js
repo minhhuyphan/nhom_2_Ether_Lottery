@@ -32,6 +32,10 @@ const ticketSchema = new mongoose.Schema(
       enum: ["pending", "active", "won", "lost"],
       default: "active",
     },
+    isActive: {
+      type: Boolean,
+      default: true, // true = vé đang bán, false = vé đã ẩn (quay xong)
+    },
     purchaseDate: {
       type: Date,
       default: Date.now,
@@ -46,15 +50,24 @@ const ticketSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    prizeTransactionHash: {
+      type: String,
+      default: null,
+    },
+    blockchainError: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Index for faster queries
 ticketSchema.index({ user: 1, purchaseDate: -1 });
 ticketSchema.index({ ticketNumber: 1 });
-ticketSchema.index({ transactionHash: 1 });
+ticketSchema.index({ isActive: 1 });
+// transactionHash is already indexed by unique: true
 
 module.exports = mongoose.model("Ticket", ticketSchema);

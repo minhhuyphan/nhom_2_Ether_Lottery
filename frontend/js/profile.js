@@ -47,7 +47,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Setup event listeners
   setupEventListeners();
+
+  // Update time every second
+  updateCurrentTime();
+  setInterval(updateCurrentTime, 1000);
 });
+
+// Update current time display
+function updateCurrentTime() {
+  const timeElement = document.getElementById("current-time");
+  if (timeElement) {
+    const now = new Date();
+    timeElement.textContent = now.toLocaleTimeString("vi-VN");
+  }
+}
 
 // Load user profile from API
 async function loadProfile() {
@@ -78,7 +91,7 @@ function displayProfile(profile) {
   document.getElementById("user-role").textContent =
     profile.role === "admin" ? "Admin" : "User";
   document.getElementById(
-    "user-role"
+    "user-role",
   ).className = `user-role-badge ${profile.role}`;
 
   // Account info
@@ -105,7 +118,7 @@ function displayProfile(profile) {
   if (profile.walletAddress) {
     const shortAddress = `${profile.walletAddress.substring(
       0,
-      6
+      6,
     )}...${profile.walletAddress.substring(38)}`;
     document.getElementById("wallet-address").textContent = shortAddress;
     document.getElementById("wallet-address").title = profile.walletAddress;
@@ -225,7 +238,7 @@ async function loadMyTickets(page = 1) {
   try {
     const response = await apiCall(
       `/api/lottery/my-tickets?page=${page}&limit=6`,
-      "GET"
+      "GET",
     );
 
     if (response.success) {
@@ -287,7 +300,7 @@ function displayTickets(tickets) {
             <span class="ticket-info-label">Ví:</span>
             <span class="ticket-info-value">${ticket.walletAddress.slice(
               0,
-              6
+              6,
             )}...${ticket.walletAddress.slice(-4)}</span>
           </div>
           ${
@@ -377,7 +390,7 @@ async function checkWalletConnection() {
 async function updateWalletInfo(address) {
   try {
     const shortAddress = `${address.substring(0, 6)}...${address.substring(
-      38
+      38,
     )}`;
     document.getElementById("wallet-address").textContent = shortAddress;
     document.getElementById("wallet-address").title = address;

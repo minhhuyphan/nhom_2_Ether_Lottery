@@ -43,6 +43,16 @@ contract Lottery {
         players = new address[](0);
     }
     
+    // Gửi tiền thưởng cho người chơi (được gọi bởi backend)
+    function sendPrizeToWinner(address winner, uint256 amount) public restricted {
+        require(winner != address(0), "Dia chi winner khong hop le");
+        require(amount > 0, "So tien phai lon hon 0");
+        require(address(this).balance >= amount, "Khong du tien trong contract");
+        
+        payable(winner).transfer(amount);
+        emit WinnerPicked(winner, amount);
+    }
+    
     // Modifier chỉ manager
     modifier restricted() {
         require(msg.sender == manager, "Chi manager moi co quyen");

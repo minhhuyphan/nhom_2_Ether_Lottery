@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Ticket = require("../models/Ticket");
 
 // @desc    Get current user profile
 // @route   GET /api/profile
@@ -90,15 +91,33 @@ exports.getStats = async (req, res) => {
       });
     }
 
-    // TODO: Implement actual stats from lottery transactions
-    // For now, return mock data
+    // Tính tổng tiền người chơi đã chi và tiền thắng
+    const userTickets = await Ticket.find({ user: req.user._id });
+
+    const totalSpent = userTickets.reduce(
+      (sum, ticket) => sum + (ticket.amount || 0),
+      0,
+    );
+    const totalWon = userTickets.reduce(
+      (sum, ticket) => sum + (ticket.prizeAmount || 0),
+      0,
+    );
+    const totalEntries = userTickets.length;
+    const totalWins = userTickets.filter(
+      (ticket) => ticket.status === "won",
+    ).length;
+    const winRate =
+      totalEntries > 0 ? Math.round((totalWins / totalEntries) * 100) : 0;
+
     const stats = {
-      totalEntries: 0,
-      totalWins: 0,
-      totalSpent: 0,
-      totalWon: 0,
-      winRate: 0,
+      totalEntries,
+      totalWins,
+      totalSpent: parseFloat(totalSpent.toFixed(6)),
+      totalWon: parseFloat(totalWon.toFixed(6)),
+      winRate,
     };
+
+    console.log("📊 User Stats for", req.user._id, ":", stats);
 
     res.json({
       success: true,

@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ether Lottery - Thông Báo</title>
     <!-- Modular CSS -->
-    <link rel="stylesheet" href="../css/variables.css" />
-    <link rel="stylesheet" href="../css/base.css" />
-    <link rel="stylesheet" href="../css/navigation.css" />
-    <link rel="stylesheet" href="../css/buttons.css" />
-    <link rel="stylesheet" href="../css/icons.css" />
-    <link rel="stylesheet" href="../css/components.css" />
-    <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="stylesheet" href="../css/notifications.css" />
-    <script src="../js/theme.js"></script>
+    <link rel="stylesheet" href="../css/variables.css?v=6" />
+    <link rel="stylesheet" href="../css/base.css?v=6" />
+    <link rel="stylesheet" href="../css/navigation.css?v=6" />
+    <link rel="stylesheet" href="../css/buttons.css?v=6" />
+    <link rel="stylesheet" href="../css/icons.css?v=6" />
+    <link rel="stylesheet" href="../css/components.css?v=6" />
+    <link rel="stylesheet" href="../css/responsive.css?v=6" />
+    <link rel="stylesheet" href="../css/notifications.css?v=6" />
+    <script src="../js/theme.js?v=6"></script>
   </head>
   <body>
     <div id="app">
@@ -98,138 +98,42 @@
             </button>
           </div>
 
-          <!-- Notifications List -->
+          <!-- Notifications List - Được load từ database -->
           <div class="notifications-container">
-            <!-- Winner Notification -->
-            <div class="notification-item unread">
-              <div class="stat-icon">
-                <img src="../icon/cup.png" alt="Trophy" />
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3>Chúc mừng! Bạn đã thắng!</h3>
-                  <span class="notification-badge new">MỚI</span>
-                </div>
-                <p class="notification-message">
-                  Bạn đã trúng giải thưởng <strong>2.5 ETH</strong> (~$4,250
-                  USD) trong phiên xổ số #1234. Số tiền đã được chuyển vào ví
-                  của bạn.
-                </p>
-                <div class="notification-meta">
-                  <span class="notification-time">5 phút trước</span>
-                  <a href="#" class="notification-action">Xem chi tiết →</a>
-                </div>
-              </div>
-              <button class="btn-notification-close">×</button>
-            </div>
-
-            <!-- Entry Confirmation -->
-            <div class="notification-item unread">
-              <div class="stat-icon">
-                <img src="../icon/tick.png" alt="Trophy" />
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3>Tham gia thành công</h3>
-                  <span class="notification-badge">XỔ SỐ</span>
-                </div>
-                <p class="notification-message">
-                  Bạn đã mua vé xổ số thành công với <strong>0.011 ETH</strong>.
-                  Số vé của bạn:
-                  <span class="ticket-number">#0x7f3d...9a2c</span>
-                </p>
-                <div class="notification-meta">
-                  <span class="notification-time">1 giờ trước</span>
-                  <a href="index.html" class="notification-action"
-                    >Xem phiên quay →</a
-                  >
-                </div>
-              </div>
-              <button class="btn-notification-close">×</button>
-            </div>
-
-            <!-- Draw Announcement -->
-            <div class="notification-item unread">
-              <div class="stat-icon">
-                <img src="../icon/loa.png" alt="Money" />
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3>Phiên quay sắp bắt đầu</h3>
-                  <span class="notification-badge">XỔ SỐ</span>
-                </div>
-                <p class="notification-message">
-                  Phiên xổ số #1235 sẽ quay thưởng sau
-                  <strong>2 giờ nữa</strong>. Giải thưởng hiện tại:
-                  <strong>3.2 ETH</strong> (~$5,440 USD)
-                </p>
-                <div class="notification-meta">
-                  <span class="notification-time">3 giờ trước</span>
-                  <a href="index.html" class="notification-action"
-                    >Mua vé ngay →</a
-                  >
-                </div>
-              </div>
-              <button class="btn-notification-close">×</button>
-            </div>
-
-            <!-- Prize Pool Update -->
-            <div class="notification-item">
-              <div class="stat-icon">
-                <img src="../icon/tui_tien.png" alt="Money" />
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3>Quỹ thưởng tăng cao</h3>
-                  <span class="notification-badge">XỔ SỐ</span>
-                </div>
-                <p class="notification-message">
-                  Quỹ thưởng đã đạt <strong>5.0 ETH</strong> (~$8,500 USD) - mức
-                  cao nhất tuần này! Đã có <strong>45 người</strong> tham gia.
-                </p>
-                <div class="notification-meta">
-                  <span class="notification-time">1 ngày trước</span>
-                </div>
-              </div>
-              <button class="btn-notification-close">×</button>
-            </div>
-
-            <!-- System Notification -->
-            <div class="notification-item">
-              <div class="notification-icon system">
-                <img src="../icon/icon_cai_dat.png" alt="System" />
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3>Cập nhật hệ thống</h3>
-                  <span class="notification-badge system">HỆ THỐNG</span>
-                </div>
-                <p class="notification-message">
-                  Smart contract đã được nâng cấp với tính năng bảo mật mới. Tất
-                  cả giao dịch của bạn vẫn an toàn và minh bạch.
-                </p>
-                <div class="notification-meta">
-                  <span class="notification-time">2 ngày trước</span>
-                  <a href="#" class="notification-action">Xem chi tiết →</a>
-                </div>
-              </div>
-              <button class="btn-notification-close">×</button>
-            </div>
-
-            <!-- Empty State (Hidden by default) -->
-            <div class="empty-notifications hidden" id="empty-notifications">
-              <div class="stat-icon">
-                <img src="../icon/chuong.png" alt="Bell" />
-              </div>
-              <h3>Không có thông báo</h3>
-              <p>Bạn đã xem hết tất cả thông báo</p>
-              <a href="index.html" class="btn-primary">Về trang chủ</a>
+            <!-- Loading State -->
+            <div class="loading-state" id="loading-notifications">
+              <div class="loading-spinner"></div>
+              <p>Đang tải thông báo...</p>
             </div>
           </div>
         </div>
       </main>
     </div>
 
-    <script src="../js/notifications.js"></script>
+    <style>
+      .loading-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--bg-tertiary);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
+    <script src="../js/notifications.js?v=6"></script>
   </body>
 </html>

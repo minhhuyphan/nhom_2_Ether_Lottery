@@ -3,6 +3,8 @@
 let web3;
 let contract;
 let adminAccount = "0xAdmin...1234"; // Mock admin account
+let dashboardRefreshInterval; // Auto-refresh interval
+let serverTimeInterval; // Server time update interval
 
 // Initialize (without MetaMask)
 function initWeb3() {
@@ -14,20 +16,133 @@ function initWeb3() {
   }
 
   loadDashboardData();
+  updateServerTime();
+
+  // Auto-refresh dashboard mỗi 5 giây
+  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
+  dashboardRefreshInterval = setInterval(loadDashboardData, 5000);
+
+  // Update server time mỗi giây
+  if (serverTimeInterval) clearInterval(serverTimeInterval);
+  serverTimeInterval = setInterval(updateServerTime, 1000);
+}
+
+// Update server time display
+async function updateServerTime() {
+  try {
+    const response = await fetch("http://localhost:5000/api/server-time");
+    const data = await response.json();
+
+    console.log("⏰ Server time response:", data);
+
+    const timeElement = document.getElementById("server-time");
+    if (timeElement) {
+      if (data.success && data.time) {
+        timeElement.textContent = data.time;
+      } else {
+        // Fallback: show local time if API fails
+        const now = new Date();
+        timeElement.textContent = now.toLocaleTimeString("vi-VN");
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching server time:", error);
+    // Fallback: show local time
+    const timeElement = document.getElementById("server-time");
+    if (timeElement) {
+      const now = new Date();
+      timeElement.textContent = now.toLocaleTimeString("vi-VN");
+    }
+  }
 }
 
 // Load Dashboard Data
 async function loadDashboardData() {
   try {
-    // Mock data for now
-    updateStats({
-      totalPlayers: 1234,
-      totalTickets: 5678,
-      totalRevenue: 125.5,
-      todayWinners: 23,
-    });
+    const token = localStorage.getItem("authToken");
+    console.log("📋 authToken:", token ? "✅ Có" : "❌ Không có");
 
-    updateRecentPlayers();
+    // Lấy thống kê từ API
+    const statsResponse = await fetch(
+      "http://localhost:5000/api/lottery/admin/stats",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log("📊 Stats response:", statsResponse.status);
+    if (!statsResponse.ok) throw new Error("Failed to fetch stats");
+    const statsData = await statsResponse.json();
+    console.log("📊 Stats data:", statsData);
+
+    if (statsData.success) {
+      updateStats(statsData.data);
+    }
+
+    // Lấy danh sách người chơi gần đây
+    const playersResponse = await fetch(
+      "http://localhost:5000/api/lottery/admin/recent-players?limit=10",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log("👥 Players response:", playersResponse.status);
+    if (playersResponse.ok) {
+      const playersData = await playersResponse.json();
+      console.log("👥 Players data:", playersData);
+      if (playersData.success) {
+        updateRecentPlayers(playersData.data);
+      }
+    } else {
+      console.error("❌ Players API error:", playersResponse.status);
+    }
+
+    // Lấy lịch sử kết quả quay
+    const drawResultsResponse = await fetch(
+      "http://localhost:5000/api/lottery/draw-results?limit=20",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log("📈 Draw results response:", drawResultsResponse.status);
+    if (drawResultsResponse.ok) {
+      const drawData = await drawResultsResponse.json();
+      console.log("📈 Draw results:", drawData);
+      if (drawData.success) {
+        loadDrawResults(drawData.data);
+      }
+    } else {
+      console.error("❌ Draw results API error:", drawResultsResponse.status);
+    }
+
+    // Lấy danh sách vé mới được mua
+    const ticketsResponse = await fetch(
+      "http://localhost:5000/api/lottery/all-tickets?limit=10&page=1",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log("🎫 Tickets response:", ticketsResponse.status);
+    if (ticketsResponse.ok) {
+      const ticketsData = await ticketsResponse.json();
+      console.log("🎫 Tickets data:", ticketsData);
+      if (ticketsData.success) {
+        loadRecentTickets(ticketsData.data.tickets);
+      }
+    } else {
+      console.error("❌ Tickets API error:", ticketsResponse.status);
+    }
   } catch (error) {
     console.error("Error loading dashboard data:", error);
   }
@@ -40,13 +155,56 @@ function updateStats(stats) {
   document.getElementById("total-tickets").textContent =
     stats.totalTickets.toLocaleString();
   document.getElementById("total-revenue").textContent =
-    stats.totalRevenue.toFixed(1) + " ETH";
+    stats.totalRevenue + " ETH";
   document.getElementById("today-winners").textContent = stats.todayWinners;
+
+  // Tổng giải thưởng = Tổng doanh thu (100% tiền vé đã bán)
+  const prizeAmountElement = document.getElementById("prize-amount");
+  if (prizeAmountElement) {
+    prizeAmountElement.textContent = stats.totalRevenue + " ETH";
+  }
 }
 
 // Draw Lottery
+
 function setupDrawButton() {
   const btnDraw = document.getElementById("btn-draw");
+  const btnRefreshTickets = document.getElementById("btn-refresh-tickets");
+
+  if (btnRefreshTickets) {
+    btnRefreshTickets.addEventListener("click", async () => {
+      try {
+        btnRefreshTickets.disabled = true;
+        btnRefreshTickets.textContent = "Đang tải...";
+
+        const token = localStorage.getItem("authToken");
+        const ticketsResponse = await fetch(
+          "http://localhost:5000/api/lottery/all-tickets?limit=10&page=1",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (ticketsResponse.ok) {
+          const ticketsData = await ticketsResponse.json();
+          if (ticketsData.success) {
+            loadRecentTickets(ticketsData.data.tickets);
+            console.log("✅ Đã làm mới danh sách vé");
+          }
+        } else {
+          alert("❌ Lỗi tải danh sách vé");
+        }
+      } catch (error) {
+        console.error("Refresh tickets error:", error);
+        alert("Có lỗi xảy ra!");
+      } finally {
+        btnRefreshTickets.disabled = false;
+        btnRefreshTickets.textContent = "Làm mới";
+      }
+    });
+  }
 
   if (btnDraw) {
     btnDraw.addEventListener("click", async () => {
@@ -74,7 +232,7 @@ function setupDrawButton() {
 
         // Generate random winning numbers (0-9 for each of 6 slots)
         const winningNumbers = Array.from({ length: 6 }, () =>
-          Math.floor(Math.random() * 10)
+          Math.floor(Math.random() * 10),
         );
 
         // Stop spinning one by one with delay
@@ -88,18 +246,121 @@ function setupDrawButton() {
           slots[i].querySelector("span").textContent = winningNumbers[i];
         }
 
-        // Wait a bit then show result
+        // Wait a bit then submit to backend
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Show success message
-        alert(`🎉 Số trúng thưởng: ${winningNumbers.join(" ")}`);
+        // Gửi kết quả quay lên backend
+        const token = localStorage.getItem("authToken");
+        const drawResponse = await fetch(
+          "http://localhost:5000/api/lottery/draw",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ winningNumbers }),
+          },
+        );
 
-        addResultToHistory(winningNumbers);
+        const drawData = await drawResponse.json();
+        console.log("Draw result:", drawData);
+
+        if (drawData.success) {
+          // Gửi thông báo cho tất cả người chơi
+          try {
+            console.log("📢 Gửi thông báo kết quả quay...");
+            const notifyResponse = await fetch(
+              "http://localhost:5000/api/notifications/notify-draw-results",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  winningNumber: winningNumbers.join(""),
+                  prizeAmount: drawData.data.prizePool,
+                }),
+              },
+            );
+
+            const notifyData = await notifyResponse.json();
+            console.log("📢 Notification response:", notifyData);
+          } catch (notifyError) {
+            console.error("❌ Error sending notifications:", notifyError);
+          }
+
+          // Hiển thị kết quả
+          const resultMessage = `
+🎉 Số trúng thưởng: ${winningNumbers.join(" ")}
+
+👥 Người thắng: ${drawData.data.totalWinners}
+🏆 Tổng giải: ${drawData.data.prizePool.toFixed(2)} ETH
+
+${
+  drawData.data.winners.length > 0
+    ? "🎊 Danh sách người thắng:\n" +
+      drawData.data.winners
+        .map((w) => `• ${w.username}: ${w.ticketNumber} → ${w.prizeAmount} ETH`)
+        .join("\n")
+    : ""
+}
+          `;
+
+          alert(resultMessage);
+
+          // Hiển thị danh sách người thắng
+          displayWinners(drawData.data.winners);
+
+          // Cập nhật lịch sử
+          addResultToHistory(winningNumbers);
+
+          // Chờ 2 giây rồi reset vé
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Gọi API reset vé
+          const resetResponse = await fetch(
+            "http://localhost:5000/api/lottery/reset-tickets",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          const resetData = await resetResponse.json();
+          console.log("� Reset response:", resetData);
+
+          if (resetData.success) {
+            console.log(
+              `✅ Ẩn vé thành công - Đã ẩn ${resetData.data.archivedCount} vé`,
+            );
+            console.log(
+              `📊 Vé hoạt động: ${resetData.data.activeTickets}, Vé đã ẩn: ${resetData.data.archivedTickets}`,
+            );
+            alert(
+              `✅ Đã ẩn vé!\n- Ẩn ${resetData.data.archivedCount} vé cũ\n- Vé hoạt động: ${resetData.data.activeTickets}\n- Sẵn sàng cho phiên quay tiếp theo`,
+            );
+          } else {
+            console.error("❌ Lỗi ẩn vé:", resetData.message);
+            alert("❌ Lỗi khi ẩn vé: " + resetData.message);
+          }
+
+          // Chờ một chút rồi cập nhật thống kê
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          loadDashboardData();
+        } else {
+          alert("❌ Lỗi: " + drawData.message);
+        }
 
         btnDraw.disabled = false;
         btnDraw.querySelector(".btn-text").classList.remove("hidden");
         btnDraw.querySelector(".btn-loading").classList.add("hidden");
       } catch (error) {
+        console.error("Draw error:", error);
         alert("Có lỗi xảy ra khi quay số!");
         btnDraw.disabled = false;
         btnDraw.querySelector(".btn-text").classList.remove("hidden");
@@ -107,6 +368,50 @@ function setupDrawButton() {
       }
     });
   }
+}
+
+// Display Winners List
+function displayWinners(winners) {
+  if (winners.length === 0) return;
+
+  const winnersContainer = document.querySelector(".results-list");
+  const now = new Date();
+  const timeString = now.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  // Thêm tiêu đề người thắng
+  const winnersHeader = document.createElement("div");
+  winnersHeader.className = "winners-section highlight";
+  winnersHeader.innerHTML = `
+    <div class="winners-title">🏆 NGƯỜI THẮNG (${winners.length})</div>
+  `;
+  winnersContainer.insertBefore(winnersHeader, winnersContainer.firstChild);
+
+  // Thêm từng người thắng
+  winners.forEach((winner, index) => {
+    const winnerItem = document.createElement("div");
+    winnerItem.className = "winner-item highlight";
+    winnerItem.innerHTML = `
+      <div class="winner-info">
+        <span class="winner-rank">#${index + 1}</span>
+        <span class="winner-name">${winner.username}</span>
+        <span class="winner-ticket">${winner.ticketNumber}</span>
+      </div>
+      <div class="winner-prize">${winner.prizeAmount} ETH</div>
+      <div class="winner-time">${timeString}</div>
+    `;
+    winnersContainer.insertBefore(winnerItem, winnersContainer.firstChild);
+  });
+
+  // Remove highlight after 5 seconds
+  setTimeout(() => {
+    document.querySelectorAll(".highlight").forEach((el) => {
+      el.classList.remove("highlight");
+    });
+  }, 5000);
 }
 
 // Add Result to History
@@ -120,82 +425,146 @@ function addResultToHistory(numbers) {
   });
 
   const resultItem = document.createElement("div");
-  resultItem.className = "result-item highlight";
+  resultItem.className = "result-item";
   resultItem.innerHTML = `
     <div class="result-numbers">${numbers.join(" ")}</div>
     <div class="result-time">${timeString}</div>
   `;
 
-  resultsList.insertBefore(resultItem, resultsList.firstChild);
+  resultsList.appendChild(resultItem);
+}
 
-  // Remove highlight after 5 seconds
-  setTimeout(() => {
-    resultItem.classList.remove("highlight");
-  }, 5000);
+// Load Draw Results from Database
+function loadDrawResults(results) {
+  const resultsList = document.querySelector(".results-list");
+  if (!resultsList) return;
 
-  // Update winner count
-  const winnerCountEl = document.getElementById("winner-count");
-  const currentCount = parseInt(winnerCountEl.textContent);
-  winnerCountEl.textContent = currentCount + 1;
+  // Xóa các hardcode items cũ (giữ lại cấu trúc)
+  const existingItems = resultsList.querySelectorAll(".result-item");
+  existingItems.forEach((item) => {
+    // Chỉ xóa nếu không phải là winner-item
+    if (!item.classList.contains("winner-item")) {
+      item.remove();
+    }
+  });
+
+  // Thêm kết quả thực tế từ database
+  results.forEach((result) => {
+    const drawDate = new Date(result.drawDate);
+    const timeString = drawDate.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    const resultItem = document.createElement("div");
+    resultItem.className = "result-item";
+    resultItem.innerHTML = `
+      <div class="result-numbers">${result.winningNumber
+        .split("")
+        .join(" ")}</div>
+      <div class="result-info">
+        <span class="result-time">${timeString}</span>
+        <span class="result-winners">👥 ${result.winnersCount} người</span>
+        <span class="result-prize">💰 ${result.totalPrize.toFixed(2)} ETH</span>
+      </div>
+    `;
+    resultsList.appendChild(resultItem);
+  });
 }
 
 // Update Recent Players Table
-function updateRecentPlayers() {
-  // Mock data - replace with actual contract data
-  const mockPlayers = [
-    {
-      address: "0x742d...3a9c",
-      tickets: 3,
-      amount: 0.033,
-      time: "2 phút trước",
-      status: "pending",
-    },
-    {
-      address: "0x8f2d...7b1e",
-      tickets: 1,
-      amount: 0.011,
-      time: "5 phút trước",
-      status: "pending",
-    },
-    {
-      address: "0x3c4a...9d2f",
-      tickets: 5,
-      amount: 0.055,
-      time: "12 phút trước",
-      status: "win",
-    },
-    {
-      address: "0x1a2b...4e5f",
-      tickets: 2,
-      amount: 0.022,
-      time: "18 phút trước",
-      status: "lose",
-    },
-    {
-      address: "0x9e8d...6c7b",
-      tickets: 4,
-      amount: 0.044,
-      time: "25 phút trước",
-      status: "lose",
-    },
-  ];
+function updateRecentPlayers(players) {
+  const tbody = document.querySelector(".table-users tbody");
+  if (!tbody) return;
 
-  const tbody = document.getElementById("players-table");
-  tbody.innerHTML = mockPlayers
-    .map(
-      (player) => `
-    <tr>
-      <td class="address">${player.address}</td>
-      <td>${player.tickets}</td>
-      <td class="amount">${player.amount.toFixed(3)} ETH</td>
-      <td>${player.time}</td>
-      <td><span class="status-badge ${player.status}">${getStatusText(
-        player.status
-      )}</span></td>
-    </tr>
-  `
-    )
-    .join("");
+  tbody.innerHTML = "";
+
+  players.forEach((player, index) => {
+    const row = document.createElement("tr");
+    const joinDate = new Date(player.createdAt).toLocaleDateString("vi-VN");
+    const lastLogin = player.lastLogin
+      ? new Date(player.lastLogin).toLocaleDateString("vi-VN")
+      : "Chưa đăng nhập";
+
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${player.username}</td>
+      <td>${player.email}</td>
+      <td>${
+        player.walletAddress
+          ? player.walletAddress.substring(0, 10) + "..."
+          : "N/A"
+      }</td>
+      <td>${player.balance.toFixed(2)} ETH</td>
+      <td>${joinDate}</td>
+      <td>${lastLogin}</td>
+      <td><span class="badge badge-active">Hoạt động</span></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Load Recent Tickets
+function loadRecentTickets(tickets) {
+  const tbody = document.querySelector(".table-tickets tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if (!tickets || tickets.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="8" style="text-align: center; color: var(--text-muted);">Không có vé nào</td>`;
+    tbody.appendChild(row);
+    return;
+  }
+
+  tickets.forEach((ticket, index) => {
+    const row = document.createElement("tr");
+    const purchaseDate = new Date(ticket.purchaseDate).toLocaleDateString(
+      "vi-VN",
+    );
+
+    // Xác định status text dựa trên ticket status
+    let statusText = "❓ Không xác định";
+    let badgeClass = "badge-info";
+
+    if (ticket.status === "active") {
+      statusText = "🎫 Chờ quay";
+      badgeClass = "badge-warning";
+    } else if (ticket.status === "won") {
+      statusText = "🏆 Thắng";
+      badgeClass = "badge-success";
+    } else if (
+      ticket.status === "lost" ||
+      ticket.status === false ||
+      ticket.status === "false"
+    ) {
+      statusText = "❌ Thua";
+      badgeClass = "badge-danger";
+    } else if (
+      ticket.status === "pending" ||
+      ticket.status === true ||
+      ticket.status === "true"
+    ) {
+      statusText = "⏳ Chờ xử lý";
+      badgeClass = "badge-info";
+    }
+
+    const truncatedTxHash = ticket.transactionHash.substring(0, 10) + "...";
+
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${ticket.user?.username || "N/A"}</td>
+      <td><strong>${ticket.ticketNumber}</strong></td>
+      <td>${ticket.walletAddress.substring(0, 10)}...</td>
+      <td>${ticket.amount.toFixed(2)} ETH</td>
+      <td title="${ticket.transactionHash}">${truncatedTxHash}</td>
+      <td>${purchaseDate}</td>
+      <td><span class="badge ${badgeClass}">${statusText}</span></td>
+    `;
+    tbody.appendChild(row);
+  });
 }
 
 function getStatusText(status) {
@@ -213,7 +582,8 @@ function getStatusText(status) {
 
 // Auto-refresh data every 30 seconds
 setInterval(() => {
-  if (adminAccount) {
+  const token = localStorage.getItem("authToken");
+  if (token) {
     loadDashboardData();
   }
 }, 30000);
