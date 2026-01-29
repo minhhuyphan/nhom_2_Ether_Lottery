@@ -4,6 +4,9 @@ let contract;
 let userAccount;
 let isAdmin = false;
 
+// API Configuration
+const API_BASE_URL = "http://localhost:5000/api";
+
 // Contract Configuration - DEPLOYED ON SEPOLIA
 const CONTRACT_ADDRESS = "0x327F9548dC8599c634598f4a1b538C6351CfB22f"; // Sepolia Testnet
 const CONTRACT_ABI = [
@@ -149,6 +152,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load public data FIRST (không cần MetaMask)
   await loadContractData();
+  await loadLatestDrawResults(); // Load draw results
 
   // Check if MetaMask is installed
   if (typeof window.ethereum !== "undefined") {
@@ -458,6 +462,77 @@ async function loadContractData() {
   } catch (error) {
     console.error("❌ ❌ ❌ CRITICAL ERROR in loadContractData:", error);
     showToast("Error loading lottery data", "error");
+  }
+}
+
+// Load Latest Draw Results
+async function loadLatestDrawResults() {
+  console.log("🎯 Loading latest draw results...");
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/lottery/latest-draw`);
+    
+    if (!response.ok) {
+      console.log("⚠️ No draw results available yet");
+      document.getElementById("no-draw-yet").style.display = "block";
+      return;
+    }
+    
+    const result = await response.json();
+    console.log("📊 Draw results:", result);
+    
+    if (result.success && result.data) {
+      const draw = result.data;
+      
+      // Hide "no draw" message
+      document.getElementById("no-draw-yet").style.display = "none";
+      
+      // Display winning number
+      if (draw.winningNumber) {
+        const digits = draw.winningNumber.toString().padStart(6, '0').split('');
+        const digitElements = document.querySelectorAll('#latest-winning-number .digit');
+        digitElements.forEach((el, idx) => {
+          el.textContent = digits[idx] || '-';
+        });
+      }
+      
+      // Display draw date
+      const drawDateEl = document.getElementById("latest-draw-date");
+      if (drawDateEl && draw.drawDate) {
+        const date = new Date(draw.drawDate);
+        drawDateEl.textContent = `Ngày quay: ${date.toLocaleString('vi-VN')}`;
+      }
+      
+      // Display winners count
+      const winnersCountEl = document.getElementById("latest-winners-count");
+      if (winnersCountEl) {
+        winnersCountEl.textContent = draw.winnersCount || 0;
+      }
+      
+      // Display total prize
+      const totalPrizeEl = document.getElementById("latest-total-prize");
+      if (totalPrizeEl) {
+        totalPrizeEl.textContent = `${draw.totalPrizeDistributed || 0} ETH`;
+      }
+      
+      // Display winners list
+      if (draw.winners && draw.winners.length > 0) {
+        document.getElementById("winners-container").style.display = "block";
+        const winnersList = document.getElementById("latest-winners-list");
+        winnersList.innerHTML = draw.winners.map(winner => `
+          <li>
+            <span class="winner-wallet">${formatAddress(winner.walletAddress)}</span>
+            <span class="winner-prize">${winner.prizeAmount} ETH</span>
+          </li>
+        `).join('');
+      }
+    } else {
+      console.log("⚠️ No draw data in response");
+      document.getElementById("no-draw-yet").style.display = "block";
+    }
+  } catch (error) {
+    console.error("❌ Error loading draw results:", error);
+    document.getElementById("no-draw-yet").style.display = "block";
   }
 }
 
