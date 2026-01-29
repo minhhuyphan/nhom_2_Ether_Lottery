@@ -10,6 +10,9 @@ const {
   drawLottery,
   getDrawResults,
   resetTickets,
+  scheduleDraw,
+  cancelScheduledDraw,
+  getScheduledDraws,
 } = require("../controllers/lotteryController");
 const { protect, adminOnly } = require("../middleware/auth");
 
@@ -25,5 +28,10 @@ router.get("/admin/recent-players", protect, adminOnly, getRecentPlayers);
 router.get("/draw-results", protect, adminOnly, getDrawResults);
 router.post("/draw", protect, adminOnly, drawLottery);
 router.post("/reset-tickets", protect, adminOnly, resetTickets);
+
+// Schedule routes
+router.post("/schedule-draw", protect, adminOnly, scheduleDraw);
+router.post("/cancel-scheduled-draw", protect, adminOnly, cancelScheduledDraw);
+router.get("/scheduled-draws", protect, adminOnly, getScheduledDraws);
 
 module.exports = router;
