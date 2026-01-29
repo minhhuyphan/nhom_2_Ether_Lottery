@@ -50,6 +50,14 @@ const ticketSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    prizeTransactionHash: {
+      type: String,
+      default: null,
+    },
+    blockchainError: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
