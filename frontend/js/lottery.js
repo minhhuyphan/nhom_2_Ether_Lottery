@@ -384,32 +384,57 @@ async function checkWalletConnection() {
 // Load Contract Data
 async function loadContractData() {
   try {
-    // Get prize pool
-    const balance = await web3.eth.getBalance(CONTRACT_ADDRESS);
-    const balanceInEth = web3.utils.fromWei(balance, "ether");
+    const token = localStorage.getItem("authToken");
 
-    document.getElementById("prize-pool-eth").textContent =
-      parseFloat(balanceInEth).toFixed(4);
-    document.getElementById("prize-pool-usd").textContent = `~ $${(
-      parseFloat(balanceInEth) * ethToUsd
-    ).toFixed(2)} USD`;
+    // Get prize pool from API (from database)
+    const statsResponse = await fetch(
+      "http://localhost:5000/api/lottery/admin/stats",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
-    // Get players
-    const players = await contract.methods.getPlayers().call();
-    displayPlayers(players);
+    if (statsResponse.ok) {
+      const statsData = await statsResponse.json();
+      if (statsData.success) {
+        const totalRevenue = statsData.data.totalRevenue;
+        document.getElementById("prize-pool-eth").textContent =
+          parseFloat(totalRevenue).toFixed(4);
+        document.getElementById("prize-pool-usd").textContent = `~ $${(
+          parseFloat(totalRevenue) * ethToUsd
+        ).toFixed(2)} USD`;
+      }
+    }
 
-    // Get entrance fee
-    const entranceFee = await contract.methods.entranceFee().call();
-    const feeInEth = web3.utils.fromWei(entranceFee, "ether");
-    document.getElementById("ticket-price").textContent = `${feeInEth} ETH`;
+    // Get players from API
+    const playersResponse = await fetch(
+      "http://localhost:5000/api/lottery/admin/recent-players?limit=20",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
-    // Calculate win chance
-    const playerCount = players.length;
-    document.getElementById("total-players").textContent = playerCount;
-    document.getElementById("win-chance").textContent =
-      playerCount > 0 ? `1/${playerCount}` : "Be the first!";
+    if (playersResponse.ok) {
+      const playersData = await playersResponse.json();
+      if (playersData.success) {
+        displayPlayers(playersData.data);
+        document.getElementById("total-players").textContent =
+          playersData.data.length;
+        document.getElementById("win-chance").textContent =
+          playersData.data.length > 0
+            ? `1/${playersData.data.length}`
+            : "Be the first!";
+      }
+    }
+
+    // Get ticket price (could be from API or hardcoded)
+    document.getElementById("ticket-price").textContent = "0.001 ETH";
   } catch (error) {
-    console.error("Error loading contract data:", error);
+    console.error("Error loading lottery data:", error);
     showToast("Error loading lottery data", "error");
   }
 }
@@ -446,7 +471,7 @@ function displayPlayers(players) {
             : ""
         }
       </li>
-    `
+    `,
       )
       .join("");
   }
@@ -477,15 +502,22 @@ async function enterLottery() {
 
     showToast(
       "Đang xử lý giao dịch... Vui lòng xác nhận trong MetaMask",
-      "pending"
+      "pending",
     );
 
     const entranceFee = await contract.methods.entranceFee().call();
 
+    // Fallback: nếu entranceFee là 0 hoặc không hợp lệ, set mặc định 0.001 ETH
+    const actualFee =
+      entranceFee && entranceFee > 0
+        ? entranceFee
+        : web3.utils.toWei("0.001", "ether");
+    const amountInEther = web3.utils.fromWei(actualFee, "ether");
+
     // Send blockchain transaction
     const receipt = await contract.methods.enter().send({
       from: userAccount,
-      value: entranceFee,
+      value: actualFee,
       gas: 300000,
     });
 
@@ -505,9 +537,9 @@ async function enterLottery() {
               ticketNumber: selectedNumber,
               walletAddress: userAccount,
               transactionHash: receipt.transactionHash,
-              amount: web3.utils.fromWei(entranceFee, "ether"),
+              amount: parseFloat(amountInEther),
             }),
-          }
+          },
         );
 
         const data = await response.json();
@@ -571,7 +603,7 @@ async function pickWinner() {
 
   if (
     !confirm(
-      "Are you sure you want to pick a winner? This action cannot be undone."
+      "Are you sure you want to pick a winner? This action cannot be undone.",
     )
   ) {
     return;
@@ -600,7 +632,7 @@ async function pickWinner() {
 
     showToast(
       `🏆 Winner: ${formatAddress(winner)} won ${amount} ETH!`,
-      "success"
+      "success",
     );
 
     // Reload data
@@ -625,7 +657,7 @@ async function getUserBalance() {
     const balance = await web3.eth.getBalance(userAccount);
     const balanceInEth = web3.utils.fromWei(balance, "ether");
     document.getElementById("user-balance").textContent = `${parseFloat(
-      balanceInEth
+      balanceInEth,
     ).toFixed(4)} ETH`;
   } catch (error) {
     console.error("Error getting balance:", error);
