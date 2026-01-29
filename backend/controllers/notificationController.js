@@ -1,4 +1,5 @@
 const Notification = require("../models/Notification");
+const notificationService = require("../services/notificationService");
 
 // @desc    Lấy danh sách thông báo của user
 // @route   GET /api/notifications
@@ -84,7 +85,7 @@ exports.markAsRead = async (req, res) => {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       { isRead: true },
-      { new: true }
+      { new: true },
     );
 
     if (!notification) {
@@ -115,7 +116,7 @@ exports.markAllAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
       { user: req.user._id, isRead: false },
-      { isRead: true }
+      { isRead: true },
     );
 
     res.json({
@@ -217,6 +218,103 @@ exports.broadcastNotification = async (req, res) => {
     });
   } catch (error) {
     console.error("Broadcast notification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Gửi thông báo kết quả xổ số
+// @route   POST /api/notifications/notify-draw-results
+// @access  Private/Admin
+exports.notifyDrawResults = async (req, res) => {
+  try {
+    const { winningNumber, prizeAmount } = req.body;
+
+    if (!winningNumber || !prizeAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp winningNumber và prizeAmount",
+      });
+    }
+
+    const result = await notificationService.notifyDrawResults(
+      winningNumber,
+      prizeAmount,
+    );
+
+    res.json({
+      success: true,
+      message: "Gửi thông báo kết quả xổ số thành công",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Notify draw results error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Gửi thông báo sắp tới giờ quay số
+// @route   POST /api/notifications/notify-upcoming-draw
+// @access  Private/Admin
+exports.notifyUpcomingDraw = async (req, res) => {
+  try {
+    const { drawTime } = req.body;
+
+    if (!drawTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp drawTime (format: HH:MM)",
+      });
+    }
+
+    const result = await notificationService.notifyUpcomingDraw(drawTime);
+
+    res.json({
+      success: true,
+      message: "Gửi thông báo sắp tới giờ quay thành công",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Notify upcoming draw error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Gửi thông báo tổng quát cho tất cả người chơi
+// @route   POST /api/notifications/notify-all
+// @access  Private/Admin
+exports.notifyAllPlayers = async (req, res) => {
+  try {
+    const { title, message, data } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp title và message",
+      });
+    }
+
+    const result = await notificationService.notifyAllPlayers(
+      title,
+      message,
+      data,
+    );
+
+    res.json({
+      success: true,
+      message: "Gửi thông báo cho tất cả người chơi thành công",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Notify all players error:", error);
     res.status(500).json({
       success: false,
       message: "Đã có lỗi xảy ra",
