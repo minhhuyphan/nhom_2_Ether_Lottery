@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Notification = require("../models/Notification");
 const scheduleService = require("../services/scheduleService");
 const notificationService = require("../services/notificationService");
-const Web3 = require("web3");
+const { Web3 } = require("web3");
 
 // Web3 setup cho Sepolia
 const web3 = new Web3(
@@ -91,6 +91,106 @@ exports.buyTicket = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Lấy kết quả quay số gần nhất
+// @route   GET /api/lottery/latest-draw
+// @access  Public
+exports.getLatestDraw = async (req, res) => {
+  try {
+    // Tìm vé trúng thưởng gần nhất (có winning number)
+    const latestWinningTicket = await Ticket.findOne({
+      status: "won",
+      winningNumber: { $exists: true, $ne: null },
+    })
+      .sort({ drawDate: -1 })
+      .limit(1);
+
+    if (!latestWinningTicket) {
+      return res.status(404).json({
+        success: false,
+        message: "Chưa có kỳ quay thưởng nào",
+      });
+    }
+
+    // Lấy tất cả người trúng cùng kỳ quay (cùng drawDate)
+    const winners = await Ticket.find({
+      status: "won",
+      drawDate: latestWinningTicket.drawDate,
+    })
+      .select("walletAddress prizeAmount ticketNumber")
+      .sort({ prizeAmount: -1 });
+
+    // Tính tổng giải thưởng đã phát
+    const totalPrizeDistributed = winners.reduce(
+      (sum, winner) => sum + (winner.prizeAmount || 0),
+      0,
+    );
+
+    res.json({
+      success: true,
+      data: {
+        winningNumber: latestWinningTicket.winningNumber,
+        drawDate: latestWinningTicket.drawDate,
+        winnersCount: winners.length,
+        totalPrizeDistributed: parseFloat(totalPrizeDistributed.toFixed(6)),
+        winners: winners.map((w) => ({
+          walletAddress: w.walletAddress,
+          prizeAmount: parseFloat((w.prizeAmount || 0).toFixed(6)),
+          ticketNumber: w.ticketNumber,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("Get latest draw error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy kết quả quay thưởng",
+    });
+  }
+};
+
+// @desc    Lấy thông tin công khai (prize pool, players)
+// @route   GET /api/lottery/public-info
+// @access  Public (không cần đăng nhập)
+exports.getPublicInfo = async (req, res) => {
+  try {
+    // Lấy tổng số người chơi
+    const totalPlayers = await User.countDocuments({ role: "user" });
+
+    // Lấy tổng giải thưởng (vé active chưa quay)
+    const activeTickets = await Ticket.find({
+      status: "active",
+    }).select("amount");
+
+    const prizePool = activeTickets.reduce(
+      (sum, ticket) => sum + (ticket.amount || 0),
+      0,
+    );
+
+    const totalTickets = activeTickets.length;
+
+    console.log("🎰 Public Info:", {
+      prizePool: prizePool.toFixed(6),
+      totalPlayers,
+      totalTickets,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        prizePool: parseFloat(prizePool.toFixed(6)),
+        totalPlayers,
+        totalTickets,
+      },
+    });
+  } catch (error) {
+    console.error("Get public info error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy thông tin",
     });
   }
 };

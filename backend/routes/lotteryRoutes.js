@@ -6,6 +6,8 @@ const {
   getMyStats,
   getAllTickets,
   getAdminStats,
+  getPublicInfo,
+  getLatestDraw,
   getRecentPlayers,
   drawLottery,
   getDrawResults,
@@ -15,6 +17,10 @@ const {
   getScheduledDraws,
 } = require("../controllers/lotteryController");
 const { protect, adminOnly } = require("../middleware/auth");
+
+// Public routes (không cần đăng nhập)
+router.get("/public-info", getPublicInfo);
+router.get("/latest-draw", getLatestDraw);
 
 // Protected routes (cần đăng nhập)
 router.post("/buy-ticket", protect, buyTicket);

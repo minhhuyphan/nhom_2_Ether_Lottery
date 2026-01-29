@@ -79,6 +79,54 @@
           </div>
         </section>
 
+        <!-- Latest Draw Results Section -->
+        <section class="prize-section">
+          <div class="draw-results-container">
+            <h2 class="draw-results-title">
+              <img src="../icon/cup.png" alt="Results" class="inline-icon" />
+              Kết Quả Quay Số Gần Nhất
+            </h2>
+            
+            <div class="latest-draw-info">
+              <div class="winning-number-display">
+                <p class="draw-label">Số Trúng Thưởng:</p>
+                <div class="winning-number" id="latest-winning-number">
+                  <span class="digit">-</span>
+                  <span class="digit">-</span>
+                  <span class="digit">-</span>
+                  <span class="digit">-</span>
+                  <span class="digit">-</span>
+                  <span class="digit">-</span>
+                </div>
+                <p class="draw-date" id="latest-draw-date">Chưa có kết quả</p>
+              </div>
+              
+              <div class="winners-info">
+                <div class="winners-stat">
+                  <p class="stat-label">Số Người Trúng:</p>
+                  <p class="stat-value" id="latest-winners-count">0</p>
+                </div>
+                <div class="winners-stat">
+                  <p class="stat-label">Tổng Giải Thưởng:</p>
+                  <p class="stat-value" id="latest-total-prize">0 ETH</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Winners List -->
+            <div class="winners-list-container" id="winners-container" style="display: none;">
+              <h3>🏆 Danh Sách Người Trúng Thưởng</h3>
+              <ul class="winners-list" id="latest-winners-list">
+                <!-- Dynamic content -->
+              </ul>
+            </div>
+
+            <div class="no-draw-yet" id="no-draw-yet">
+              <p>Chưa có kỳ quay thưởng nào. Hãy tham gia và chờ đợi!</p>
+            </div>
+          </div>
+        </section>
+
         <!-- Game Section -->
         <div class="game-grid">
           <!-- Player Zone -->
@@ -320,6 +368,6 @@
       <div id="toast-container" class="toast-container"></div>
     </div>
 
-    <script src="../js/lottery.js?v=6"></script>
+    <script src="../js/lottery.js?v=10"></script>
   </body>
 </html>

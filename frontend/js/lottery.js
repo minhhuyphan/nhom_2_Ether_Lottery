@@ -4,6 +4,9 @@ let contract;
 let userAccount;
 let isAdmin = false;
 
+// API Configuration
+const API_BASE_URL = "http://localhost:5000/api";
+
 // Contract Configuration - DEPLOYED ON SEPOLIA
 const CONTRACT_ADDRESS = "0x327F9548dC8599c634598f4a1b538C6351CfB22f"; // Sepolia Testnet
 const CONTRACT_ABI = [
@@ -146,6 +149,10 @@ let ethToUsd = 2000;
 document.addEventListener("DOMContentLoaded", async () => {
   loadTheme();
   setupEventListeners();
+
+  // Load public data FIRST (không cần MetaMask)
+  await loadContractData();
+  await loadLatestDrawResults(); // Load draw results
 
   // Check if MetaMask is installed
   if (typeof window.ethereum !== "undefined") {
@@ -383,59 +390,149 @@ async function checkWalletConnection() {
 
 // Load Contract Data
 async function loadContractData() {
+  console.log("🔄 loadContractData() CALLED - Loading public lottery info...");
   try {
-    const token = localStorage.getItem("authToken");
+    // Get prize pool from PUBLIC API (không cần token)
+    const apiUrl = "http://localhost:5000/api/lottery/public-info";
+    console.log("📡 Fetching:", apiUrl);
+    
+    const publicResponse = await fetch(apiUrl);
+    console.log("📥 Response status:", publicResponse.status, publicResponse.ok ? "OK" : "FAILED");
 
-    // Get prize pool from API (from database)
-    const statsResponse = await fetch(
-      "http://localhost:5000/api/lottery/admin/stats",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    if (statsResponse.ok) {
-      const statsData = await statsResponse.json();
-      if (statsData.success) {
-        const totalRevenue = statsData.data.totalRevenue;
-        document.getElementById("prize-pool-eth").textContent =
-          parseFloat(totalRevenue).toFixed(4);
-        document.getElementById("prize-pool-usd").textContent = `~ $${(
-          parseFloat(totalRevenue) * ethToUsd
-        ).toFixed(2)} USD`;
+    if (publicResponse.ok) {
+      const publicData = await publicResponse.json();
+      console.log("📊 Public lottery info:", publicData);
+      
+      if (publicData.success) {
+        const prizePool = publicData.data.prizePool;
+        const totalPlayers = publicData.data.totalPlayers;
+        const totalTickets = publicData.data.totalTickets;
+        
+        console.log("💰 Prize Pool:", prizePool, "ETH");
+        console.log("👥 Total Players:", totalPlayers);
+        console.log("🎫 Total Tickets:", totalTickets);
+        
+        // Cập nhật prize pool
+        const prizePoolEth = document.getElementById("prize-pool-eth");
+        const prizePoolUsd = document.getElementById("prize-pool-usd");
+        
+        console.log("🎯 DOM Elements found:", {
+          prizePoolEth: !!prizePoolEth,
+          prizePoolUsd: !!prizePoolUsd
+        });
+        
+        if (prizePoolEth) {
+          prizePoolEth.textContent = parseFloat(prizePool).toFixed(4);
+          console.log("✅ Updated prize-pool-eth:", prizePoolEth.textContent);
+        } else {
+          console.error("❌ Element #prize-pool-eth NOT FOUND!");
+        }
+        
+        if (prizePoolUsd) {
+          prizePoolUsd.textContent = `~ $${(parseFloat(prizePool) * ethToUsd).toFixed(2)} USD`;
+          console.log("✅ Updated prize-pool-usd:", prizePoolUsd.textContent);
+        } else {
+          console.error("❌ Element #prize-pool-usd NOT FOUND!");
+        }
+        
+        // Cập nhật số người chơi
+        const totalPlayersEl = document.getElementById("total-players");
+        const winChanceEl = document.getElementById("win-chance");
+        const playersCountEl = document.getElementById("players-count");
+        
+        if (totalPlayersEl) totalPlayersEl.textContent = totalTickets;
+        if (playersCountEl) playersCountEl.textContent = totalTickets;
+        if (winChanceEl) {
+          winChanceEl.textContent = totalTickets > 0 ? `1/${totalTickets}` : "Be the first!";
+        }
+        
+        console.log(`✅ ✅ ✅ SUCCESS! Loaded: ${prizePool} ETH, ${totalTickets} tickets, ${totalPlayers} players`);
+      } else {
+        console.error("❌ API returned success=false:", publicData);
       }
+    } else {
+      console.error("❌ API request failed with status:", publicResponse.status);
     }
 
-    // Get players from API
-    const playersResponse = await fetch(
-      "http://localhost:5000/api/lottery/admin/recent-players?limit=20",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    if (playersResponse.ok) {
-      const playersData = await playersResponse.json();
-      if (playersData.success) {
-        displayPlayers(playersData.data);
-        document.getElementById("total-players").textContent =
-          playersData.data.length;
-        document.getElementById("win-chance").textContent =
-          playersData.data.length > 0
-            ? `1/${playersData.data.length}`
-            : "Be the first!";
-      }
+    // Get ticket price (hardcoded)
+    const ticketPriceEl = document.getElementById("ticket-price");
+    if (ticketPriceEl) {
+      ticketPriceEl.textContent = "0.001 ETH";
     }
-
-    // Get ticket price (could be from API or hardcoded)
-    document.getElementById("ticket-price").textContent = "0.001 ETH";
   } catch (error) {
-    console.error("Error loading lottery data:", error);
+    console.error("❌ ❌ ❌ CRITICAL ERROR in loadContractData:", error);
     showToast("Error loading lottery data", "error");
+  }
+}
+
+// Load Latest Draw Results
+async function loadLatestDrawResults() {
+  console.log("🎯 Loading latest draw results...");
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/lottery/latest-draw`);
+    
+    if (!response.ok) {
+      console.log("⚠️ No draw results available yet");
+      document.getElementById("no-draw-yet").style.display = "block";
+      return;
+    }
+    
+    const result = await response.json();
+    console.log("📊 Draw results:", result);
+    
+    if (result.success && result.data) {
+      const draw = result.data;
+      
+      // Hide "no draw" message
+      document.getElementById("no-draw-yet").style.display = "none";
+      
+      // Display winning number
+      if (draw.winningNumber) {
+        const digits = draw.winningNumber.toString().padStart(6, '0').split('');
+        const digitElements = document.querySelectorAll('#latest-winning-number .digit');
+        digitElements.forEach((el, idx) => {
+          el.textContent = digits[idx] || '-';
+        });
+      }
+      
+      // Display draw date
+      const drawDateEl = document.getElementById("latest-draw-date");
+      if (drawDateEl && draw.drawDate) {
+        const date = new Date(draw.drawDate);
+        drawDateEl.textContent = `Ngày quay: ${date.toLocaleString('vi-VN')}`;
+      }
+      
+      // Display winners count
+      const winnersCountEl = document.getElementById("latest-winners-count");
+      if (winnersCountEl) {
+        winnersCountEl.textContent = draw.winnersCount || 0;
+      }
+      
+      // Display total prize
+      const totalPrizeEl = document.getElementById("latest-total-prize");
+      if (totalPrizeEl) {
+        totalPrizeEl.textContent = `${draw.totalPrizeDistributed || 0} ETH`;
+      }
+      
+      // Display winners list
+      if (draw.winners && draw.winners.length > 0) {
+        document.getElementById("winners-container").style.display = "block";
+        const winnersList = document.getElementById("latest-winners-list");
+        winnersList.innerHTML = draw.winners.map(winner => `
+          <li>
+            <span class="winner-wallet">${formatAddress(winner.walletAddress)}</span>
+            <span class="winner-prize">${winner.prizeAmount} ETH</span>
+          </li>
+        `).join('');
+      }
+    } else {
+      console.log("⚠️ No draw data in response");
+      document.getElementById("no-draw-yet").style.display = "block";
+    }
+  } catch (error) {
+    console.error("❌ Error loading draw results:", error);
+    document.getElementById("no-draw-yet").style.display = "block";
   }
 }
 

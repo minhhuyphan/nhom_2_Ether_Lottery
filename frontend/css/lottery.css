@@ -1,5 +1,174 @@
 /* Lottery Specific Styles */
 
+/* Draw Results Section */
+.draw-results-container {
+  background: linear-gradient(
+    135deg,
+    rgba(45, 75, 100, 0.85) 0%,
+    rgba(60, 50, 90, 0.85) 100%
+  );
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(100, 150, 255, 0.2);
+  margin-bottom: 32px;
+}
+
+.draw-results-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.latest-draw-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.winning-number-display {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.draw-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.winning-number {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.winning-number .digit {
+  width: 48px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.draw-date {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 8px;
+}
+
+.winners-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.winners-stat {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fbbf24;
+  text-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+}
+
+.winners-list-container {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.winners-list-container h3 {
+  font-size: 18px;
+  color: white;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.winners-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.winners-list li {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 3px solid #fbbf24;
+}
+
+.winner-wallet {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.winner-prize {
+  font-weight: 600;
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+.no-draw-yet {
+  text-align: center;
+  padding: 48px 24px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .latest-draw-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .winning-number .digit {
+    width: 40px;
+    height: 52px;
+    font-size: 24px;
+  }
+}
+
 .lottery-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -347,7 +516,7 @@
 }
 
 .players-container {
-  max-height: 860px;
+  max-height: 300px;
   overflow-y: auto;
   margin-bottom: 16px;
 }
