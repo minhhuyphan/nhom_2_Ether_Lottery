@@ -8,7 +8,7 @@ let isAdmin = false;
 const API_BASE_URL = "http://localhost:5000/api";
 
 // Contract Configuration - DEPLOYED ON SEPOLIA
-const CONTRACT_ADDRESS = "0x327F9548dC8599c634598f4a1b538C6351CfB22f"; // Sepolia Testnet
+const CONTRACT_ADDRESS = "0x354A56dBa9A6305C5b3860C38f5dEA6814c607Dc"; // Sepolia Testnet
 const CONTRACT_ABI = [
   {
     inputs: [],
@@ -122,6 +122,26 @@ const CONTRACT_ABI = [
       },
     ],
     name: "setEntranceFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawAll",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
