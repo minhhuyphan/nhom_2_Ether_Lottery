@@ -8,7 +8,7 @@ let isAdmin = false;
 const API_BASE_URL = "http://localhost:5000/api";
 
 // Contract Configuration - DEPLOYED ON SEPOLIA
-const CONTRACT_ADDRESS = "0x354A56dBa9A6305C5b3860C38f5dEA6814c607Dc"; // Sepolia Testnet
+const CONTRACT_ADDRESS = "0x5071BEBdB4a86090E81A7e950A6370AF889512F8"; // Sepolia Testnet
 const CONTRACT_ABI = [
   {
     inputs: [],

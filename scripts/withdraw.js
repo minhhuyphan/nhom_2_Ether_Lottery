@@ -15,10 +15,21 @@ async function main() {
   console.log("💰 ADMIN WITHDRAWAL TOOL");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-  // Get contract address from environment
-  const contractAddress =
-    process.env.LOTTERY_CONTRACT_ADDRESS ||
-    "0x354A56dBa9A6305C5b3860C38f5dEA6814c607Dc";
+  // Get contract address from environment or deployment file
+  let contractAddress = process.env.LOTTERY_CONTRACT_ADDRESS;
+
+  if (!contractAddress) {
+    try {
+      const deploymentPath = require("path").join(
+        __dirname,
+        "../deployments/sepolia.json",
+      );
+      const deployment = require(deploymentPath);
+      contractAddress = deployment.contractAddress;
+    } catch (error) {
+      contractAddress = "0x327F9548dC8599c634598f4a1b538C6351CfB22f"; // fallback
+    }
+  }
 
   // Get admin wallet
   const [admin] = await hre.ethers.getSigners();
@@ -29,7 +40,7 @@ async function main() {
   console.log(
     "💼 Admin Balance:",
     hre.ethers.formatEther(adminBalance),
-    "ETH\n"
+    "ETH\n",
   );
 
   // Connect to contract
@@ -43,7 +54,7 @@ async function main() {
   console.log(
     "💰 Contract Balance:",
     hre.ethers.formatEther(contractBalance),
-    "ETH"
+    "ETH",
   );
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
@@ -83,14 +94,16 @@ async function main() {
       }
 
       console.log(
-        `\n⏳ Đang rút ${hre.ethers.formatEther(amountToWithdraw)} ETH...`
+        `\n⏳ Đang rút ${hre.ethers.formatEther(amountToWithdraw)} ETH...`,
       );
       tx = await lottery.withdraw(amountToWithdraw);
     } else if (choice === "2") {
       // Withdraw all
       amountToWithdraw = contractBalance;
       console.log(
-        `\n⏳ Đang rút toàn bộ ${hre.ethers.formatEther(contractBalance)} ETH...`
+        `\n⏳ Đang rút toàn bộ ${hre.ethers.formatEther(
+          contractBalance,
+        )} ETH...`,
       );
       tx = await lottery.withdrawAll();
     } else {
@@ -107,13 +120,17 @@ async function main() {
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("✅ RÚT TIỀN THÀNH CÔNG!");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("💸 Số tiền đã rút:", hre.ethers.formatEther(amountToWithdraw), "ETH");
+    console.log(
+      "💸 Số tiền đã rút:",
+      hre.ethers.formatEther(amountToWithdraw),
+      "ETH",
+    );
     console.log("🔗 Transaction:", tx.hash);
     console.log("⛽ Gas Used:", receipt.gasUsed.toString());
     console.log(
       "💵 Gas Cost:",
       hre.ethers.formatEther(receipt.gasUsed * receipt.gasPrice),
-      "ETH"
+      "ETH",
     );
 
     // Get new balances
@@ -124,26 +141,22 @@ async function main() {
     console.log(
       "💼 Contract Balance:",
       hre.ethers.formatEther(newContractBalance),
-      "ETH"
+      "ETH",
     );
     console.log(
       "👤 Admin Balance:",
       hre.ethers.formatEther(newAdminBalance),
-      "ETH"
+      "ETH",
     );
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     // Show Etherscan link
-    console.log(
-      "🔍 Xem trên Sepolia Etherscan:"
-    );
+    console.log("🔍 Xem trên Sepolia Etherscan:");
     console.log(`https://sepolia.etherscan.io/tx/${tx.hash}\n`);
   } catch (error) {
     console.error("\n❌ LỖI:", error.message);
     if (error.message.includes("Chi manager moi co quyen")) {
-      console.log(
-        "\n⚠️  Chỉ admin wallet mới có quyền rút tiền!"
-      );
+      console.log("\n⚠️  Chỉ admin wallet mới có quyền rút tiền!");
     }
   }
 

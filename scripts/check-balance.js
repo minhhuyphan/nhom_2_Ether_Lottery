@@ -1,24 +1,38 @@
 const hre = require("hardhat");
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
-  const balance = await hre.ethers.provider.getBalance(deployer.address);
-  
+  // Kiểm tra contract hoặc wallet address
+  const targetAddress =
+    process.env.CHECK_ADDRESS || "0x327F9548dC8599c634598f4a1b538C6351CfB22f";
+
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("📍 Network:", hre.network.name);
-  console.log("💼 Address:", deployer.address);
+  console.log("🔍 Checking Address:", targetAddress);
+
+  // Get balance
+  const balance = await hre.ethers.provider.getBalance(targetAddress);
   console.log("💰 Balance:", hre.ethers.formatEther(balance), "ETH");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  
-  if (parseFloat(hre.ethers.formatEther(balance)) < 0.01) {
-    console.log("\n⚠️  Balance quá thấp để deploy!");
-    console.log("🔗 Lấy testnet ETH tại:");
-    console.log("   - https://sepoliafaucet.com");
-    console.log("   - https://faucet.quicknode.com/ethereum/sepolia");
-    console.log("   - https://www.alchemy.com/faucets/ethereum-sepolia");
+
+  // Check if it's a contract
+  const code = await hre.ethers.provider.getCode(targetAddress);
+  if (code === "0x") {
+    console.log("📝 Type: Wallet Address");
   } else {
-    console.log("\n✅ Balance đủ để deploy!");
+    console.log("📝 Type: Smart Contract");
   }
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  // Also check deployer balance
+  const [deployer] = await hre.ethers.getSigners();
+  const deployerBalance = await hre.ethers.provider.getBalance(
+    deployer.address,
+  );
+  console.log("\n👤 Your Wallet:", deployer.address);
+  console.log(
+    "💰 Your Balance:",
+    hre.ethers.formatEther(deployerBalance),
+    "ETH",
+  );
 }
 
 main()
