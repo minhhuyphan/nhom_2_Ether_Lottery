@@ -73,4 +73,20 @@ contract Lottery {
     function getBalance() public view returns (uint256) {
         return address(this).balance;
     }
+    
+    // Rút tiền về ví admin (chỉ manager)
+    function withdraw(uint256 amount) public restricted {
+        require(amount > 0, "So tien phai lon hon 0");
+        require(address(this).balance >= amount, "Khong du tien trong contract");
+        
+        payable(manager).transfer(amount);
+    }
+    
+    // Rút toàn bộ tiền về ví admin
+    function withdrawAll() public restricted {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "Contract khong co tien");
+        
+        payable(manager).transfer(balance);
+    }
 }
