@@ -396,13 +396,22 @@ exports.drawLottery = async (req, res) => {
     const winningTickets = [];
     const losingTickets = [];
 
+    console.log(`🎯 Winning number: ${winningNumber}`);
+    console.log(`🔍 Kiểm tra ${activeTickets.length} vé...`);
+
     for (const ticket of activeTickets) {
       const ticketLastThree = ticket.ticketNumber.slice(-3);
       const winningLastThree = winningNumber.slice(-3);
 
+      console.log(
+        `  Vé: ${ticket.ticketNumber} (3 số cuối: ${ticketLastThree}) vs Winning: ${winningLastThree}`,
+      );
+
       if (ticketLastThree === winningLastThree) {
+        console.log(`    ✅ TRÚNG!`);
         winningTickets.push(ticket);
       } else {
+        console.log(`    ❌ Thua`);
         losingTickets.push(ticket);
       }
     }
@@ -417,8 +426,13 @@ exports.drawLottery = async (req, res) => {
 
       // Cộng tiền thưởng cho user
       const user = await User.findById(ticket.user._id);
+      console.log(`💰 Cộng tiền cho ${user.username}:`);
+      console.log(`   Balance trước: ${user.balance} ETH`);
       user.balance += ticket.amount;
+      console.log(`   Balance sau: ${user.balance} ETH`);
+      console.log(`   Giải thưởng: ${ticket.amount} ETH`);
       await user.save();
+      console.log(`   ✅ Đã save vào database`);
 
       // Gửi tiền vào ví MetaMask trên blockchain
       try {
@@ -867,10 +881,14 @@ async function sendPrizeToWinner(winnerAddress, amountETH) {
       );
     }
 
+    console.log(
+      `📤 Gửi giải thưởng ${amountETH} ETH từ CONTRACT đến ${winnerAddress}...`,
+    );
+
     // Convert ETH to Wei
     const amountWei = web3.utils.toWei(amountETH.toString(), "ether");
 
-    // Load contract ABI
+    // Contract ABI - function sendPrizeToWinner
     const contractABI = [
       {
         inputs: [
@@ -894,30 +912,31 @@ async function sendPrizeToWinner(winnerAddress, amountETH) {
     const gasPrice = await web3.eth.getGasPrice();
     console.log(`   Gas price: ${web3.utils.fromWei(gasPrice, "gwei")} Gwei`);
 
-    // Estimate gas
+    // Estimate gas for contract call
     const gasEstimate = await contract.methods
       .sendPrizeToWinner(winnerAddress, amountWei)
       .estimateGas({ from: adminWallet });
     console.log(`   Estimated gas: ${gasEstimate}`);
 
-    // Build transaction
+    // Build transaction to call contract method
     const tx = {
       from: adminWallet,
       to: contractAddress,
       data: contract.methods
         .sendPrizeToWinner(winnerAddress, amountWei)
         .encodeABI(),
-      gas: Math.ceil(gasEstimate * 1.2), // Add 20% buffer
+      gas: Math.ceil(gasEstimate * 1.2),
       gasPrice: gasPrice,
       nonce: nonce,
-      chainId: 11155111, // Sepolia testnet
+      chainId: 11155111,
     };
 
-    console.log(`   TX to send:`, {
+    console.log(`   📋 Thông tin giao dịch:`, {
       from: tx.from,
       to: tx.to,
       amount: web3.utils.fromWei(amountWei, "ether") + " ETH",
       recipient: winnerAddress,
+      contract: contractAddress,
     });
 
     // Sign transaction
@@ -925,17 +944,20 @@ async function sendPrizeToWinner(winnerAddress, amountETH) {
       tx,
       adminPrivateKey,
     );
-    console.log(`   ✓ Transaction signed`);
+    console.log(`   ✅ Transaction signed`);
 
     // Send transaction
     const receipt = await web3.eth.sendSignedTransaction(
       signedTx.rawTransaction,
     );
-    console.log(`   ✓ Transaction sent! Hash: ${receipt.transactionHash}`);
+    console.log(`   ✅ Transaction sent! Hash: ${receipt.transactionHash}`);
+    console.log(`   ✅ Người nhận: ${winnerAddress}`);
+    console.log(`   ✅ Số tiền từ contract: ${amountETH} ETH`);
+    console.log(`   ✅ Gas used: ${receipt.gasUsed}`);
 
     return receipt.transactionHash;
   } catch (error) {
-    console.error("Error in sendPrizeToWinner:", error.message);
+    console.error("❌ Error in sendPrizeToWinner:", error.message);
     throw error;
   }
 }

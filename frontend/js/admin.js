@@ -169,6 +169,7 @@ function updateStats(stats) {
 
 function setupDrawButton() {
   const btnDraw = document.getElementById("btn-draw");
+  const btnTestDraw = document.getElementById("btn-test-draw");
   const btnRefreshTickets = document.getElementById("btn-refresh-tickets");
 
   if (btnRefreshTickets) {
@@ -230,10 +231,17 @@ function setupDrawButton() {
         // Spin for 2 seconds
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // Generate random winning numbers (0-9 for each of 6 slots)
-        const winningNumbers = Array.from({ length: 6 }, () =>
+        // Generate winning numbers: 3 random numbers for first 3 digits, then 1, 2, 3 for last 3 digits
+        const winningNumbers = [
           Math.floor(Math.random() * 10),
-        );
+          Math.floor(Math.random() * 10),
+          Math.floor(Math.random() * 10),
+          1,
+          2,
+          3,
+        ];
+
+        console.log("📋 Winning numbers (3 số cuối = 123):", winningNumbers);
 
         // Stop spinning one by one with delay
         for (let i = 0; i < slots.length; i++) {
