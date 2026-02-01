@@ -174,6 +174,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadContractData();
   await loadLatestDrawResults(); // Load draw results
 
+  // Auto refresh draw results every 30 seconds
+  setInterval(async () => {
+    await loadLatestDrawResults();
+  }, 30000); // 30 giây
+
   // Check if MetaMask is installed
   if (typeof window.ethereum !== "undefined") {
     web3 = new Web3(window.ethereum);
@@ -494,7 +499,7 @@ async function loadLatestDrawResults() {
     
     if (!response.ok) {
       console.log("⚠️ No draw results available yet");
-      document.getElementById("no-draw-yet").style.display = "block";
+      showNoDrawMessage();
       return;
     }
     
@@ -507,12 +512,33 @@ async function loadLatestDrawResults() {
       // Hide "no draw" message
       document.getElementById("no-draw-yet").style.display = "none";
       
-      // Display winning number
+      // Check if this is a new result
+      const lastDrawId = localStorage.getItem('lastDrawId');
+      const isNewResult = lastDrawId !== String(draw._id);
+      
+      if (isNewResult && lastDrawId) {
+        // Highlight the results container for new results
+        const container = document.querySelector('.draw-results-container');
+        container.classList.add('new-result');
+        setTimeout(() => {
+          container.classList.remove('new-result');
+        }, 1500);
+      }
+      
+      // Save current draw ID
+      localStorage.setItem('lastDrawId', draw._id);
+      
+      // Display winning number (ALWAYS show if available)
       if (draw.winningNumber) {
         const digits = draw.winningNumber.toString().padStart(6, '0').split('');
         const digitElements = document.querySelectorAll('#latest-winning-number .digit');
         digitElements.forEach((el, idx) => {
           el.textContent = digits[idx] || '-';
+          // Add animation effect
+          el.style.animation = 'none';
+          setTimeout(() => {
+            el.style.animation = 'pulse 0.5s ease';
+          }, idx * 100);
         });
       }
       
@@ -521,39 +547,74 @@ async function loadLatestDrawResults() {
       if (drawDateEl && draw.drawDate) {
         const date = new Date(draw.drawDate);
         drawDateEl.textContent = `Ngày quay: ${date.toLocaleString('vi-VN')}`;
+        drawDateEl.style.display = "block";
       }
       
-      // Display winners count
+      // Display winners count (ALWAYS show, even if 0)
       const winnersCountEl = document.getElementById("latest-winners-count");
       if (winnersCountEl) {
-        winnersCountEl.textContent = draw.winnersCount || 0;
+        const count = draw.winnersCount || 0;
+        winnersCountEl.textContent = count;
+        winnersCountEl.style.color = count > 0 ? '#10B981' : '#EF4444';
       }
       
-      // Display total prize
+      // Display total prize (ALWAYS show)
       const totalPrizeEl = document.getElementById("latest-total-prize");
       if (totalPrizeEl) {
-        totalPrizeEl.textContent = `${draw.totalPrizeDistributed || 0} ETH`;
+        const prize = draw.totalPrizeDistributed || 0;
+        totalPrizeEl.textContent = `${prize} ETH`;
+        totalPrizeEl.style.color = prize > 0 ? '#10B981' : '#9CA3AF';
       }
       
-      // Display winners list
+      // Display winners list if available
+      const winnersContainer = document.getElementById("winners-container");
       if (draw.winners && draw.winners.length > 0) {
-        document.getElementById("winners-container").style.display = "block";
+        winnersContainer.style.display = "block";
         const winnersList = document.getElementById("latest-winners-list");
-        winnersList.innerHTML = draw.winners.map(winner => `
-          <li>
-            <span class="winner-wallet">${formatAddress(winner.walletAddress)}</span>
-            <span class="winner-prize">${winner.prizeAmount} ETH</span>
+        winnersList.innerHTML = draw.winners.map((winner, idx) => `
+          <li style="animation: slideIn 0.3s ease ${idx * 0.1}s both">
+            <span class="winner-wallet">🏆 ${formatAddress(winner.walletAddress)}</span>
+            <span class="winner-prize" style="color: #10B981; font-weight: bold;">${winner.prizeAmount} ETH</span>
           </li>
         `).join('');
+      } else {
+        // Show message when no winners
+        winnersContainer.style.display = "block";
+        const winnersList = document.getElementById("latest-winners-list");
+        winnersList.innerHTML = `
+          <li style="text-align: center; color: #9CA3AF; padding: 20px;">
+            <span>❌ Không có người trúng thưởng trong kỳ này</span>
+          </li>
+        `;
       }
+      
+      console.log("✅ Draw results loaded successfully");
     } else {
       console.log("⚠️ No draw data in response");
-      document.getElementById("no-draw-yet").style.display = "block";
+      showNoDrawMessage();
     }
   } catch (error) {
     console.error("❌ Error loading draw results:", error);
-    document.getElementById("no-draw-yet").style.display = "block";
+    showNoDrawMessage();
   }
+}
+
+// Helper function to show no draw message
+function showNoDrawMessage() {
+  document.getElementById("no-draw-yet").style.display = "block";
+  document.getElementById("winners-container").style.display = "none";
+  document.getElementById("latest-draw-date").style.display = "none";
+  
+  // Reset winning numbers
+  const digitElements = document.querySelectorAll('#latest-winning-number .digit');
+  digitElements.forEach(el => el.textContent = '-');
+  
+  // Reset stats
+  const winnersCountEl = document.getElementById("latest-winners-count");
+  if (winnersCountEl) winnersCountEl.textContent = '0';
+  
+  const totalPrizeEl = document.getElementById("latest-total-prize");
+  if (totalPrizeEl) totalPrizeEl.textContent = '0 ETH';
 }
 
 // Display Players
@@ -752,8 +813,14 @@ async function pickWinner() {
       "success",
     );
 
-    // Reload data
+    // Reload data and refresh draw results
     await loadContractData();
+    
+    // Wait a bit for backend to process, then reload draw results
+    setTimeout(async () => {
+      await loadLatestDrawResults();
+      showToast("✅ Kết quả xổ số đã được cập nhật!", "info");
+    }, 2000);
   } catch (error) {
     console.error("Pick winner error:", error);
     showToast("Failed to pick winner: " + error.message, "error");
