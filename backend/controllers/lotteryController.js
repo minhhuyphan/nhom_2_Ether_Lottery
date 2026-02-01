@@ -100,25 +100,26 @@ exports.buyTicket = async (req, res) => {
 // @access  Public
 exports.getLatestDraw = async (req, res) => {
   try {
-    // Tìm vé trúng thưởng gần nhất (có winning number)
-    const latestWinningTicket = await Ticket.findOne({
-      status: "won",
+    // Tìm kết quả xổ số gần nhất (có winningNumber, bất kể có người trúng hay không)
+    const latestDraw = await Ticket.findOne({
       winningNumber: { $exists: true, $ne: null },
+      drawDate: { $exists: true, $ne: null },
     })
       .sort({ drawDate: -1 })
       .limit(1);
 
-    if (!latestWinningTicket) {
+    if (!latestDraw) {
       return res.status(404).json({
         success: false,
         message: "Chưa có kỳ quay thưởng nào",
       });
     }
 
-    // Lấy tất cả người trúng cùng kỳ quay (cùng drawDate)
+    // Lấy tất cả người trúng cùng kỳ quay (cùng drawDate và status = "won")
     const winners = await Ticket.find({
       status: "won",
-      drawDate: latestWinningTicket.drawDate,
+      drawDate: latestDraw.drawDate,
+      winningNumber: latestDraw.winningNumber,
     })
       .select("walletAddress prizeAmount ticketNumber")
       .sort({ prizeAmount: -1 });
@@ -129,11 +130,19 @@ exports.getLatestDraw = async (req, res) => {
       0,
     );
 
+    console.log(`📊 Latest draw result:`, {
+      winningNumber: latestDraw.winningNumber,
+      drawDate: latestDraw.drawDate,
+      winnersCount: winners.length,
+      totalPrizeDistributed: totalPrizeDistributed.toFixed(6),
+    });
+
     res.json({
       success: true,
       data: {
-        winningNumber: latestWinningTicket.winningNumber,
-        drawDate: latestWinningTicket.drawDate,
+        _id: latestDraw._id,
+        winningNumber: latestDraw.winningNumber,
+        drawDate: latestDraw.drawDate,
         winnersCount: winners.length,
         totalPrizeDistributed: parseFloat(totalPrizeDistributed.toFixed(6)),
         winners: winners.map((w) => ({
