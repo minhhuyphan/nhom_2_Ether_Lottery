@@ -38,7 +38,7 @@ const notificationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Index để query nhanh hơn
@@ -50,7 +50,7 @@ notificationSchema.statics.createTicketPurchaseNotification = async function (
   userId,
   ticketNumber,
   amount,
-  ticketId
+  ticketId,
 ) {
   return await this.create({
     user: userId,
@@ -72,7 +72,7 @@ notificationSchema.statics.createWinNotification = async function (
   userId,
   ticketNumber,
   prizeAmount,
-  ticketId
+  ticketId,
 ) {
   return await this.create({
     user: userId,
@@ -93,7 +93,7 @@ notificationSchema.statics.createWinNotification = async function (
 notificationSchema.statics.createLossNotification = async function (
   userId,
   ticketNumber,
-  ticketId
+  ticketId,
 ) {
   return await this.create({
     user: userId,
@@ -109,12 +109,39 @@ notificationSchema.statics.createLossNotification = async function (
   });
 };
 
+// Static method để tạo thông báo nhận giải thưởng
+notificationSchema.statics.createPrizeReceivedNotification = async function (
+  userId,
+  ticketNumber,
+  prizeAmount,
+  ticketId,
+  transactionHash,
+) {
+  return await this.create({
+    user: userId,
+    title: "💰 Nhận tiền thưởng thành công!",
+    message: `Bạn đã nhận ${prizeAmount} ETH từ vé số ${ticketNumber}. TX: ${transactionHash.substring(
+      0,
+      10,
+    )}...`,
+    type: "prize",
+    icon: "money",
+    data: {
+      ticketId,
+      ticketNumber,
+      prizeAmount,
+      transactionHash,
+      action: "prize_received",
+    },
+  });
+};
+
 // Static method để tạo thông báo hệ thống
 notificationSchema.statics.createSystemNotification = async function (
   userId,
   title,
   message,
-  data = {}
+  data = {},
 ) {
   return await this.create({
     user: userId,
