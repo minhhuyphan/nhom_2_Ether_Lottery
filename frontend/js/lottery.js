@@ -730,6 +730,11 @@ async function enterLottery() {
     return;
   }
 
+  if (!contract) {
+    showToast("Hợp đồng chưa được tải. Vui lòng refresh trang", "error");
+    return;
+  }
+
   // Check if number is selected
   const selectedNumber = getSelectedNumber();
   if (!selectedNumber) {
@@ -739,11 +744,18 @@ async function enterLottery() {
 
   try {
     const btn = document.getElementById("enter-lottery-btn");
+    if (!btn) {
+      showToast("Không tìm thấy nút xác nhận", "error");
+      return;
+    }
+
     const btnText = btn.querySelector(".btn-text");
     const btnLoading = btn.querySelector(".btn-loading");
 
-    btnText.classList.add("hidden");
-    btnLoading.classList.remove("hidden");
+    if (btnText && btnLoading) {
+      btnText.classList.add("hidden");
+      btnLoading.classList.remove("hidden");
+    }
     btn.disabled = true;
 
     showToast(
@@ -817,12 +829,16 @@ async function enterLottery() {
     }
   } finally {
     const btn = document.getElementById("enter-lottery-btn");
-    const btnText = btn.querySelector(".btn-text");
-    const btnLoading = btn.querySelector(".btn-loading");
+    if (btn) {
+      const btnText = btn.querySelector(".btn-text");
+      const btnLoading = btn.querySelector(".btn-loading");
 
-    btnText.classList.remove("hidden");
-    btnLoading.classList.add("hidden");
-    btn.disabled = false;
+      if (btnText && btnLoading) {
+        btnText.classList.remove("hidden");
+        btnLoading.classList.add("hidden");
+      }
+      btn.disabled = false;
+    }
   }
 }
 
@@ -922,7 +938,19 @@ function formatAddress(address) {
 }
 
 function showToast(message, type = "success") {
-  const container = document.getElementById("toast-container");
+  let container = document.getElementById("toast-container");
+
+  // Create container if it doesn't exist
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    container.style.position = "fixed";
+    container.style.top = "20px";
+    container.style.right = "20px";
+    container.style.zIndex = "9999";
+    document.body.appendChild(container);
+  }
+
   const toast = document.createElement("div");
 
   const icons = {
