@@ -5,18 +5,32 @@ const scheduleService = require("../services/scheduleService");
 const notificationService = require("../services/notificationService");
 const { Web3 } = require("web3");
 
-// Web3 setup cho Sepolia
+/**
+ * ⚙️ Setup Web3 - Kết nối đến blockchain Sepolia
+ * Web3 được dùng để:
+ * - Gọi hàm trong smart contract
+ * - Gửi transaction
+ * - Lấy dữ liệu từ blockchain
+ */
 const web3 = new Web3(
   process.env.INFURA_RPC_URL ||
     "https://sepolia.infura.io/v3/" + process.env.INFURA_API_KEY,
 );
-const contractAddress = process.env.LOTTERY_CONTRACT_ADDRESS;
-const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY;
-const adminWallet = process.env.ADMIN_WALLET_ADDRESS;
+const contractAddress = process.env.LOTTERY_CONTRACT_ADDRESS; // Địa chỉ contract
+const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY; // Private key admin
+const adminWallet = process.env.ADMIN_WALLET_ADDRESS; // Địa chỉ ví admin
 
-// @desc    Mua vé số
-// @route   POST /api/lottery/buy-ticket
-// @access  Private
+/**
+ * 🎫 BUY TICKET - Hàm xử lý khi user mua vé
+ * @route   POST /api/lottery/buy-ticket
+ * @access  Private (cần đăng nhập)
+ *
+ * Flow:
+ * 1. User gửi ticketNumber, walletAddress, transactionHash từ blockchain
+ * 2. Backend validate thông tin
+ * 3. Ghi vé vào MongoDB
+ * 4. Gửi thông báo cho user
+ */
 exports.buyTicket = async (req, res) => {
   try {
     const { ticketNumber, walletAddress, transactionHash, amount } = req.body;
@@ -28,7 +42,7 @@ exports.buyTicket = async (req, res) => {
       amount,
     });
 
-    // Validate input
+    // ✅ Validate: Kiểm tra đầu vào
     if (!ticketNumber || !walletAddress || !transactionHash || !amount) {
       return res.status(400).json({
         success: false,
@@ -36,7 +50,7 @@ exports.buyTicket = async (req, res) => {
       });
     }
 
-    // Validate ticket number format (6 digits)
+    // ✅ Validate: Số vé phải có đúng 6 chữ số
     if (!/^\d{6}$/.test(ticketNumber)) {
       return res.status(400).json({
         success: false,
@@ -44,7 +58,7 @@ exports.buyTicket = async (req, res) => {
       });
     }
 
-    // Check if transaction hash already exists
+    // ✅ Validate: Kiểm tra transaction hash không trùng (tránh duplicate)
     const existingTicket = await Ticket.findOne({ transactionHash });
     if (existingTicket) {
       return res.status(400).json({
@@ -53,13 +67,14 @@ exports.buyTicket = async (req, res) => {
       });
     }
 
-    // Create ticket
+    // 📝 Tạo vé mới trong MongoDB
     const ticket = await Ticket.create({
-      user: req.user._id,
-      ticketNumber,
-      walletAddress: walletAddress.toLowerCase(),
-      transactionHash,
-      amount: parseFloat(amount), // Ensure it's a number
+      user: req.user._id, // ID user
+      ticketNumber, // Số vé (6 chữ số)
+      walletAddress: walletAddress.toLowerCase(), // Ví lowercase
+      transactionHash, // Hash giao dịch blockchain
+      amount: parseFloat(amount), // Số tiền (0.001 ETH)
+      // status: "active" (mặc định trong schema)
     });
 
     console.log("✅ Ticket created:", {
@@ -68,7 +83,7 @@ exports.buyTicket = async (req, res) => {
       isActive: ticket.isActive,
     });
 
-    // Gửi thông báo mua vé thành công
+    // 📬 Gửi thông báo cho user (optional)
     try {
       await Notification.createTicketPurchaseNotification(
         req.user._id,
@@ -77,10 +92,11 @@ exports.buyTicket = async (req, res) => {
         ticket._id,
       );
     } catch (notifError) {
-      // Log lỗi nhưng không ảnh hưởng đến việc mua vé
       console.error("Create notification error:", notifError);
+      // Không ảnh hưởng đến việc mua vé, chỉ log lỗi
     }
 
+    // ✅ Trả về response thành công
     res.status(201).json({
       success: true,
       message: "Mua vé thành công",
@@ -95,9 +111,11 @@ exports.buyTicket = async (req, res) => {
   }
 };
 
-// @desc    Lấy kết quả quay số gần nhất
-// @route   GET /api/lottery/latest-draw
-// @access  Public
+/**
+ * 🎰 GET LATEST DRAW - Lấy kết quả quay gần nhất
+ * @route   GET /api/lottery/latest-draw
+ * @access  Public (không cần đăng nhập)
+ */
 exports.getLatestDraw = async (req, res) => {
   try {
     // Tìm kết quả xổ số gần nhất (có winningNumber, bất kể có người trúng hay không)
@@ -1255,13 +1273,11 @@ async function callContractEnter(playerAddress, amountETH) {
 
     // Estimate gas
     const amountWei = String(web3.utils.toWei(amountETH.toString(), "ether"));
-    
-    const gasEstimate = await contract.methods
-      .enter()
-      .estimateGas({ 
-        from: playerAddress,
-        value: amountWei
-      });
+
+    const gasEstimate = await contract.methods.enter().estimateGas({
+      from: playerAddress,
+      value: amountWei,
+    });
 
     // Build transaction
     const tx = {

@@ -3,7 +3,8 @@ const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
 
-const connectDB = require("./config/database");
+// 📍 Import các thành phần chính
+const connectDB = require("./config/database"); // Kết nối MongoDB
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const lotteryRoutes = require("./routes/lotteryRoutes");
@@ -11,34 +12,35 @@ const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
-// Kết nối MongoDB
+// 🔗 Kết nối MongoDB Database
 connectDB();
 
-// Middleware
+// ⚙️ Middleware - Xử lý request trước khi đến route
 app.use(
   cors({
+    // Cho phép request từ các domain này
     origin: [
       "http://localhost:3000",
       "http://127.0.0.1:3000",
       "http://localhost:5500",
       "http://127.0.0.1:5500",
     ],
-    credentials: true,
+    credentials: true, // Cho phép gửi cookies
   }),
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Parse JSON từ request body
+app.use(express.urlencoded({ extended: true })); // Parse form data
 
-// Serve static files từ frontend
+// 📁 Phục vụ static files từ thư mục frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/lottery", lotteryRoutes);
-app.use("/api/notifications", notificationRoutes);
+// 🛣️ API Routes - Kết nối các routes API
+app.use("/api/auth", authRoutes); // /api/auth/* - Đăng nhập, đăng ký
+app.use("/api/profile", profileRoutes); // /api/profile/* - Thông tin user
+app.use("/api/lottery", lotteryRoutes); // /api/lottery/* - Mua vé, quay số
+app.use("/api/notifications", notificationRoutes); // /api/notifications/* - Thông báo
 
-// Health check
+// ❤️ Health Check - Kiểm tra server có chạy không
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -47,7 +49,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Get server time for scheduling
+// ⏰ API Lấy thời gian server (dùng để check schedule)
 app.get("/api/server-time", (req, res) => {
   const now = new Date();
   res.json({
@@ -59,7 +61,7 @@ app.get("/api/server-time", (req, res) => {
   });
 });
 
-// Handle 404 for API routes
+// ⛔ Xử lý 404 cho các API endpoint không tồn tại
 app.use("/api/*", (req, res) => {
   res.status(404).json({
     success: false,
@@ -67,12 +69,12 @@ app.use("/api/*", (req, res) => {
   });
 });
 
-// Serve frontend cho các route khác
+// 🌐 Phục vụ frontend cho các route khác (SPA routing)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/html/index.html"));
 });
 
-// Error handling middleware
+// ⚠️ Error Handling Middleware - Bắt tất cả lỗi server
 app.use((err, req, res, next) => {
   console.error("Server error:", err);
   res.status(500).json({
@@ -81,6 +83,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 🚀 Khởi động server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
@@ -88,9 +91,10 @@ app.listen(PORT, "0.0.0.0", () => {
 ╔════════════════════════════════════════════╗
 ║     🎰 Ether Lottery Backend Server 🎰     ║
 ╠════════════════════════════════════════════╣
-║  Server running on port: ${PORT}              ║
-║  API URL: http://localhost:${PORT}/api        ║
-║  Health: http://localhost:${PORT}/api/health  ║
+║  ✅ Server chạy trên port: ${PORT}              ║
+║  📍 API URL: http://localhost:${PORT}/api        ║
+║  ❤️  Health check: http://localhost:${PORT}/api/health  ║
+║  ⏰ Server time: http://localhost:${PORT}/api/server-time ║
 ╚════════════════════════════════════════════╝
   `);
 });
