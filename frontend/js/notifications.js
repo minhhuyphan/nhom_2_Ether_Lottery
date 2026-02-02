@@ -4,7 +4,7 @@ const API_BASE_URL = "http://localhost:5000/api";
 
 // State
 let allNotifications = [];
-let currentTab = "all";
+let currentTab = "unread";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Kiểm tra đăng nhập
@@ -83,14 +83,6 @@ function renderNotifications() {
 
   if (currentTab === "unread") {
     filteredNotifications = allNotifications.filter((n) => !n.isRead);
-  } else if (currentTab === "lottery") {
-    filteredNotifications = allNotifications.filter(
-      (n) => n.type === "lottery" || n.type === "prize",
-    );
-  } else if (currentTab === "system") {
-    filteredNotifications = allNotifications.filter(
-      (n) => n.type === "system" || n.type === "info",
-    );
   }
 
   // Show empty state nếu không có thông báo

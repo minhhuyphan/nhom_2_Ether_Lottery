@@ -172,7 +172,7 @@ exports.getPublicInfo = async (req, res) => {
     // Lấy tổng giải thưởng (vé active chưa quay)
     const activeTickets = await Ticket.find({
       status: "active",
-    }).select("amount");
+    }).select("amount walletAddress");
 
     const prizePool = activeTickets.reduce(
       (sum, ticket) => sum + (ticket.amount || 0),
@@ -181,10 +181,16 @@ exports.getPublicInfo = async (req, res) => {
 
     const totalTickets = activeTickets.length;
 
+    // Lấy danh sách wallet addresses của người chơi (không trùng lặp)
+    const playersAddresses = [
+      ...new Set(activeTickets.map((t) => t.walletAddress)),
+    ];
+
     console.log("🎰 Public Info:", {
       prizePool: prizePool.toFixed(6),
       totalPlayers,
       totalTickets,
+      playersCount: playersAddresses.length,
     });
 
     res.json({
@@ -193,6 +199,7 @@ exports.getPublicInfo = async (req, res) => {
         prizePool: parseFloat(prizePool.toFixed(6)),
         totalPlayers,
         totalTickets,
+        players: playersAddresses,
       },
     });
   } catch (error) {
@@ -396,13 +403,22 @@ exports.drawLottery = async (req, res) => {
     const winningTickets = [];
     const losingTickets = [];
 
+    console.log(`🎯 Winning number: ${winningNumber}`);
+    console.log(`🔍 Kiểm tra ${activeTickets.length} vé...`);
+
     for (const ticket of activeTickets) {
       const ticketLastThree = ticket.ticketNumber.slice(-3);
       const winningLastThree = winningNumber.slice(-3);
 
+      console.log(
+        `  Vé: ${ticket.ticketNumber} (3 số cuối: ${ticketLastThree}) vs Winning: ${winningLastThree}`,
+      );
+
       if (ticketLastThree === winningLastThree) {
+        console.log(`    ✅ TRÚNG!`);
         winningTickets.push(ticket);
       } else {
+        console.log(`    ❌ Thua`);
         losingTickets.push(ticket);
       }
     }
@@ -417,8 +433,13 @@ exports.drawLottery = async (req, res) => {
 
       // Cộng tiền thưởng cho user
       const user = await User.findById(ticket.user._id);
+      console.log(`💰 Cộng tiền cho ${user.username}:`);
+      console.log(`   Balance trước: ${user.balance} ETH`);
       user.balance += ticket.amount;
+      console.log(`   Balance sau: ${user.balance} ETH`);
+      console.log(`   Giải thưởng: ${ticket.amount} ETH`);
       await user.save();
+      console.log(`   ✅ Đã save vào database`);
 
       // Gửi tiền vào ví MetaMask trên blockchain
       try {
@@ -434,6 +455,20 @@ exports.drawLottery = async (req, res) => {
         // Lưu transaction hash
         ticket.prizeTransactionHash = txHash;
         await ticket.save();
+
+        // Tạo thông báo công tiền (nhận giải thưởng)
+        try {
+          await Notification.createPrizeReceivedNotification(
+            ticket.user._id,
+            ticket.ticketNumber,
+            ticket.amount,
+            ticket._id,
+            txHash,
+          );
+          console.log(`✅ Thông báo công tiền đã tạo`);
+        } catch (prizeNotifError) {
+          console.error("Lỗi tạo thông báo công tiền:", prizeNotifError);
+        }
       } catch (blockchainError) {
         console.error("❌ Lỗi gửi tiền blockchain:", blockchainError.message);
         // Vẫn cập nhật trạng thái thắng, nhưng note lỗi blockchain
@@ -854,32 +889,364 @@ exports.getScheduledDraws = async (req, res) => {
   }
 };
 /**
- * Gửi tiền thưởng đến ví MetaMask qua smart contract
+ * Gửi tiền thưởng đến ví MetaMask qua smart contract (với retry)
  * @param {string} winnerAddress - Địa chỉ ví MetaMask của người thắng
  * @param {number} amountETH - Số tiền ETH cần gửi
  * @returns {string} Transaction hash
  */
-async function sendPrizeToWinner(winnerAddress, amountETH) {
-  try {
-    if (!contractAddress || !adminPrivateKey || !adminWallet) {
-      throw new Error(
-        "Missing blockchain configuration (CONTRACT_ADDRESS, PRIVATE_KEY, ADMIN_WALLET)",
+async function sendPrizeToWinner(winnerAddress, amountETH, maxRetries = 3) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      if (!contractAddress || !adminPrivateKey || !adminWallet) {
+        throw new Error(
+          "Missing blockchain configuration (CONTRACT_ADDRESS, PRIVATE_KEY, ADMIN_WALLET)",
+        );
+      }
+
+      console.log(
+        `📤 [Attempt ${attempt}/${maxRetries}] Gửi giải thưởng ${amountETH} ETH từ CONTRACT đến ${winnerAddress}...`,
       );
+
+      // Convert ETH to Wei
+      const amountWei = String(web3.utils.toWei(amountETH.toString(), "ether"));
+
+      // Contract ABI - function sendPrizeToWinner
+      const contractABI = [
+        {
+          inputs: [
+            { internalType: "address", name: "winner", type: "address" },
+            { internalType: "uint256", name: "amount", type: "uint256" },
+          ],
+          name: "sendPrizeToWinner",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ];
+
+      const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+      // Get nonce
+      const nonce = await web3.eth.getTransactionCount(adminWallet);
+      console.log(`   Nonce: ${nonce}`);
+
+      // Get gas price (increase by 20% for each retry)
+      const baseGasPrice = await web3.eth.getGasPrice();
+      const multiplier = 1 + (attempt - 1) * 0.2; // 1x, 1.2x, 1.4x
+      const gasPrice = Math.floor(Number(baseGasPrice) * multiplier);
+      console.log(
+        `   Gas price: ${web3.utils.fromWei(gasPrice.toString(), "gwei")} Gwei`,
+      );
+
+      // Estimate gas for contract call
+      const gasEstimate = await contract.methods
+        .sendPrizeToWinner(winnerAddress, amountWei)
+        .estimateGas({ from: adminWallet });
+      console.log(`   Estimated gas: ${gasEstimate}`);
+
+      // Build transaction to call contract method
+      const tx = {
+        from: adminWallet,
+        to: contractAddress,
+        data: contract.methods
+          .sendPrizeToWinner(winnerAddress, amountWei)
+          .encodeABI(),
+        gas: Math.ceil(Number(gasEstimate) * 1.2),
+        gasPrice: gasPrice,
+        nonce: Number(nonce),
+        chainId: 11155111,
+      };
+
+      console.log(`   📋 Thông tin giao dịch:`, {
+        from: tx.from,
+        to: tx.to,
+        amount: web3.utils.fromWei(amountWei, "ether") + " ETH",
+        recipient: winnerAddress,
+        contract: contractAddress,
+      });
+
+      // Debug: log transaction object types
+      console.log(`   🔍 TX Object Types:`, {
+        gas: typeof tx.gas,
+        gasPrice: typeof tx.gasPrice,
+        nonce: typeof tx.nonce,
+        chainId: typeof tx.chainId,
+        data: typeof tx.data,
+      });
+
+      // Sign transaction
+      const signedTx = await web3.eth.accounts.signTransaction(
+        tx,
+        adminPrivateKey,
+      );
+      console.log(`   ✅ Transaction signed`);
+
+      // Send transaction
+      const receipt = await web3.eth.sendSignedTransaction(
+        signedTx.rawTransaction,
+      );
+      console.log(`   ✅ Transaction sent! Hash: ${receipt.transactionHash}`);
+      console.log(`   ✅ Người nhận: ${winnerAddress}`);
+      console.log(`   ✅ Số tiền từ contract: ${amountETH} ETH`);
+      console.log(`   ✅ Gas used: ${receipt.gasUsed}`);
+
+      return receipt.transactionHash;
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `❌ [Attempt ${attempt}/${maxRetries}] Error: ${error.message}`,
+      );
+
+      // Nếu lỗi là "insufficient funds" hoặc "out of gas", không retry
+      if (
+        error.message.includes("insufficient funds") ||
+        error.message.includes("out of gas")
+      ) {
+        console.error("❌ Lỗi không thể retry - hết tiền hoặc gas");
+        throw error;
+      }
+
+      // Nếu không phải lần cuối, đợi 3 giây rồi retry
+      if (attempt < maxRetries) {
+        const waitTime = 3000 * attempt; // 3s, 6s, 9s
+        console.log(`   ⏳ Chờ ${waitTime}ms trước khi retry...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+
+  // Nếu hết retry, throw lỗi cuối cùng
+  console.error(
+    "❌ Error in sendPrizeToWinner after all retries:",
+    lastError.message,
+  );
+  throw lastError;
+}
+
+// @desc    Lấy danh sách vé bị lỗi khi gửi tiền (Admin)
+// @route   GET /api/lottery/failed-prizes
+// @access  Private/Admin
+exports.getFailedPrizes = async (req, res) => {
+  try {
+    const failedTickets = await Ticket.find({
+      status: "won",
+      blockchainError: { $exists: true, $ne: null },
+    })
+      .populate("user", "username email")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: {
+        count: failedTickets.length,
+        tickets: failedTickets.map((t) => ({
+          _id: t._id,
+          ticketNumber: t.ticketNumber,
+          username: t.user.username,
+          walletAddress: t.walletAddress,
+          prizeAmount: t.prizeAmount,
+          blockchainError: t.blockchainError,
+          prizeTransactionHash: t.prizeTransactionHash || "Chưa gửi",
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("Get failed prizes error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Retry gửi tiền cho vé bị lỗi (Admin)
+// @route   POST /api/lottery/retry-send-prize/:ticketId
+// @access  Private/Admin
+exports.retrySendPrize = async (req, res) => {
+  try {
+    const { ticketId } = req.params;
+
+    // Tìm vé
+    const ticket = await Ticket.findById(ticketId).populate("user");
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: "Vé không tồn tại",
+      });
     }
 
-    // Convert ETH to Wei
-    const amountWei = web3.utils.toWei(amountETH.toString(), "ether");
+    if (ticket.status !== "won") {
+      return res.status(400).json({
+        success: false,
+        message: "Vé này không phải vé trúng thưởng",
+      });
+    }
 
-    // Load contract ABI
+    console.log(
+      `🔄 RETRY: Gửi tiền cho vé ${ticket.ticketNumber} (${ticket.walletAddress})...`,
+    );
+
+    try {
+      const txHash = await sendPrizeToWinner(
+        ticket.walletAddress,
+        ticket.prizeAmount,
+      );
+      console.log(`✅ RETRY thành công! TX: ${txHash}`);
+
+      // Cập nhật vé
+      ticket.prizeTransactionHash = txHash;
+      ticket.blockchainError = null; // Xóa lỗi
+      await ticket.save();
+
+      // Tạo thông báo công tiền
+      try {
+        await Notification.createPrizeReceivedNotification(
+          ticket.user._id,
+          ticket.ticketNumber,
+          ticket.prizeAmount,
+          ticket._id,
+          txHash,
+        );
+        console.log(`✅ Thông báo công tiền đã tạo`);
+      } catch (prizeNotifError) {
+        console.error("Lỗi tạo thông báo công tiền:", prizeNotifError);
+      }
+
+      res.json({
+        success: true,
+        message: "Gửi tiền thành công",
+        data: {
+          ticketId,
+          transactionHash: txHash,
+          prizeAmount: ticket.prizeAmount,
+        },
+      });
+    } catch (blockchainError) {
+      console.error("❌ RETRY thất bại:", blockchainError.message);
+      ticket.blockchainError = blockchainError.message;
+      await ticket.save();
+
+      res.status(500).json({
+        success: false,
+        message: "Gửi tiền thất bại: " + blockchainError.message,
+        error: blockchainError.message,
+      });
+    }
+  } catch (error) {
+    console.error("Retry send prize error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+
+// @desc    Gửi tiền cho tất cả vé bị lỗi (Admin - Batch)
+// @route   POST /api/lottery/retry-all-failed-prizes
+// @access  Private/Admin
+exports.retryAllFailedPrizes = async (req, res) => {
+  try {
+    const failedTickets = await Ticket.find({
+      status: "won",
+      blockchainError: { $exists: true, $ne: null },
+    }).populate("user");
+
+    if (failedTickets.length === 0) {
+      return res.json({
+        success: true,
+        message: "Không có vé bị lỗi",
+        data: { retried: 0, successful: 0, failed: 0 },
+      });
+    }
+
+    let successful = 0;
+    let failed = 0;
+    const results = [];
+
+    for (const ticket of failedTickets) {
+      try {
+        console.log(
+          `🔄 BATCH RETRY: Vé ${ticket.ticketNumber} → ${ticket.walletAddress}...`,
+        );
+        const txHash = await sendPrizeToWinner(
+          ticket.walletAddress,
+          ticket.prizeAmount,
+        );
+
+        ticket.prizeTransactionHash = txHash;
+        ticket.blockchainError = null;
+        await ticket.save();
+
+        // Tạo thông báo công tiền
+        try {
+          await Notification.createPrizeReceivedNotification(
+            ticket.user._id,
+            ticket.ticketNumber,
+            ticket.prizeAmount,
+            ticket._id,
+            txHash,
+          );
+        } catch (prizeNotifError) {
+          console.error("Lỗi tạo thông báo công tiền:", prizeNotifError);
+        }
+
+        successful++;
+
+        results.push({
+          ticketNumber: ticket.ticketNumber,
+          status: "success",
+          txHash,
+        });
+
+        console.log(`✅ Thành công: ${ticket.ticketNumber}`);
+
+        // Đợi 2 giây giữa mỗi transaction
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } catch (error) {
+        failed++;
+        ticket.blockchainError = error.message;
+        await ticket.save();
+
+        results.push({
+          ticketNumber: ticket.ticketNumber,
+          status: "failed",
+          error: error.message,
+        });
+
+        console.error(`❌ Thất bại: ${ticket.ticketNumber} - ${error.message}`);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Retry hoàn tất: ${successful} thành công, ${failed} thất bại`,
+      data: {
+        retried: failedTickets.length,
+        successful,
+        failed,
+        results,
+      },
+    });
+  } catch (error) {
+    console.error("Retry all failed prizes error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Đã có lỗi xảy ra",
+    });
+  }
+};
+// Helper function - Gọi hàm enter() contract
+async function callContractEnter(playerAddress, amountETH) {
+  try {
+    // Contract ABI - function enter
     const contractABI = [
       {
-        inputs: [
-          { internalType: "address", name: "winner", type: "address" },
-          { internalType: "uint256", name: "amount", type: "uint256" },
-        ],
-        name: "sendPrizeToWinner",
+        inputs: [],
+        name: "enter",
         outputs: [],
-        stateMutability: "nonpayable",
+        stateMutability: "payable",
         type: "function",
       },
     ];
@@ -887,55 +1254,244 @@ async function sendPrizeToWinner(winnerAddress, amountETH) {
     const contract = new web3.eth.Contract(contractABI, contractAddress);
 
     // Get nonce
-    const nonce = await web3.eth.getTransactionCount(adminWallet);
-    console.log(`   Nonce: ${nonce}`);
+    const nonce = await web3.eth.getTransactionCount(playerAddress);
 
     // Get gas price
-    const gasPrice = await web3.eth.getGasPrice();
-    console.log(`   Gas price: ${web3.utils.fromWei(gasPrice, "gwei")} Gwei`);
+    const baseGasPrice = await web3.eth.getGasPrice();
+    const gasPrice = Math.floor(Number(baseGasPrice) * 1.2);
 
     // Estimate gas
-    const gasEstimate = await contract.methods
-      .sendPrizeToWinner(winnerAddress, amountWei)
-      .estimateGas({ from: adminWallet });
-    console.log(`   Estimated gas: ${gasEstimate}`);
+    const amountWei = String(web3.utils.toWei(amountETH.toString(), "ether"));
+
+    const gasEstimate = await contract.methods.enter().estimateGas({
+      from: playerAddress,
+      value: amountWei,
+    });
 
     // Build transaction
     const tx = {
-      from: adminWallet,
+      from: playerAddress,
       to: contractAddress,
-      data: contract.methods
-        .sendPrizeToWinner(winnerAddress, amountWei)
-        .encodeABI(),
-      gas: Math.ceil(gasEstimate * 1.2), // Add 20% buffer
+      data: contract.methods.enter().encodeABI(),
+      gas: Math.ceil(Number(gasEstimate) * 1.2),
       gasPrice: gasPrice,
-      nonce: nonce,
-      chainId: 11155111, // Sepolia testnet
+      nonce: Number(nonce),
+      chainId: 11155111,
+      value: amountWei,
     };
 
-    console.log(`   TX to send:`, {
+    console.log(`📋 Enter transaction:`, {
       from: tx.from,
       to: tx.to,
-      amount: web3.utils.fromWei(amountWei, "ether") + " ETH",
-      recipient: winnerAddress,
+      value: amountWei + " Wei (" + amountETH + " ETH)",
+      gas: tx.gas,
+      gasPrice: tx.gasPrice,
     });
 
-    // Sign transaction
-    const signedTx = await web3.eth.accounts.signTransaction(
-      tx,
-      adminPrivateKey,
-    );
-    console.log(`   ✓ Transaction signed`);
-
-    // Send transaction
-    const receipt = await web3.eth.sendSignedTransaction(
-      signedTx.rawTransaction,
-    );
-    console.log(`   ✓ Transaction sent! Hash: ${receipt.transactionHash}`);
-
-    return receipt.transactionHash;
+    return tx;
   } catch (error) {
-    console.error("Error in sendPrizeToWinner:", error.message);
     throw error;
   }
 }
+
+// @desc    Lấy thống kê tài chính (Thu nhập, Chi phí, Khối lượng, Lợi nhuận)
+// @route   GET /api/lottery/admin/finance-stats
+// @access  Private/Admin
+exports.getFinanceStats = async (req, res) => {
+  try {
+    // 1. Tổng Thu Nhập = Tổng tiền từ tất cả vé đã bán (amount từ Ticket)
+    const totalIncomeData = await Ticket.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+    const totalIncome = totalIncomeData[0]?.total || 0;
+
+    // 2. Tổng Chi Phí = Tổng giải thưởng đã phát (prizeAmount từ vé won)
+    const totalExpenseData = await Ticket.aggregate([
+      { $match: { status: "won" } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$prizeAmount" },
+        },
+      },
+    ]);
+    const totalExpense = totalExpenseData[0]?.total || 0;
+
+    // 3. Khối Lượng Giao Dịch = Tổng amount từ tất cả vé
+    const totalVolume = totalIncome; // Khối lượng = Tổng vé bán
+
+    // 4. Lợi Nhuận Ròng = Thu nhập - Chi phí
+    const totalProfit = totalIncome - totalExpense;
+
+    // 5. Số vé đã bán
+    const totalTickets = await Ticket.countDocuments();
+
+    // 6. Số vé trúng thưởng
+    const wonTickets = await Ticket.countDocuments({ status: "won" });
+
+    // 7. Số vé chưa quay
+    const activeTickets = await Ticket.countDocuments({ status: "active" });
+
+    console.log("💰 Finance Stats:", {
+      totalIncome: totalIncome.toFixed(6),
+      totalExpense: totalExpense.toFixed(6),
+      totalVolume: totalVolume.toFixed(6),
+      totalProfit: totalProfit.toFixed(6),
+      totalTickets,
+      wonTickets,
+      activeTickets,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalIncome: parseFloat(totalIncome.toFixed(6)),
+        totalExpense: parseFloat(totalExpense.toFixed(6)),
+        totalVolume: parseFloat(totalVolume.toFixed(6)),
+        totalProfit: parseFloat(totalProfit.toFixed(6)),
+        ticketStats: {
+          totalTickets,
+          wonTickets,
+          activeTickets,
+          lostTickets: totalTickets - wonTickets - activeTickets,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get finance stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy thống kê tài chính",
+    });
+  }
+};
+
+// @desc    Lấy lịch sử giao dịch (Transaction History)
+// @route   GET /api/lottery/admin/transactions
+// @access  Private/Admin
+exports.getTransactions = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const type = req.query.type || "all"; // fee, deposit, withdraw, prize, all
+    const skip = (page - 1) * limit;
+
+    // Map type to ticket status/type
+    let query = {};
+
+    if (type === "prize") {
+      query = { status: "won" }; // Giải thưởng = vé trúng
+    } else if (type === "fee") {
+      query = { status: "lost" }; // Phí quản lý = vé thua (quản lý giữ lại tiền)
+    } else if (type === "all") {
+      query = { drawDate: { $exists: true } }; // Tất cả vé đã quay (won hoặc lost)
+    }
+
+    // Get transactions
+    const transactions = await Ticket.find(query)
+      .populate("user", "username email")
+      .sort({ drawDate: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Ticket.countDocuments(query);
+
+    // Format transactions for display
+    const formattedTransactions = transactions.map((ticket) => {
+      let transactionType = "unknown";
+      let amount = ticket.amount;
+      let amountDirection = "neutral";
+
+      if (ticket.status === "won") {
+        transactionType = "prize"; // Giải thưởng
+        amount = ticket.prizeAmount || ticket.amount;
+        amountDirection = "income";
+      } else if (ticket.status === "lost") {
+        transactionType = "fee"; // Phí quản lý (tiền giữ lại)
+        amount = ticket.amount;
+        amountDirection = "income"; // Từ góc độ quản lý
+      }
+
+      return {
+        id: ticket._id,
+        type: transactionType,
+        from: ticket.walletAddress,
+        to: "0x0000...0000", // Contract address (cắt ngắn)
+        amount: parseFloat(amount.toFixed(6)),
+        timestamp: ticket.drawDate || ticket.createdAt,
+        status: ticket.status === "won" ? "success" : "success",
+        ticketNumber: ticket.ticketNumber,
+        username: ticket.user?.username || "Unknown",
+        txHash: ticket.prizeTransactionHash || "Pending",
+        amountDirection,
+      };
+    });
+
+    console.log(`📊 Transactions fetched:`, {
+      page,
+      limit,
+      type,
+      total,
+      returned: formattedTransactions.length,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        transactions: formattedTransactions,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get transactions error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy lịch sử giao dịch",
+    });
+  }
+};
+
+// @desc    Get transaction data để gọi enter() (cho frontend Web3)
+// @route   GET /api/lottery/enter-tx-data/:amount/:playerAddress
+// @access  Public
+exports.getEnterTxData = async (req, res) => {
+  try {
+    const { amount, playerAddress } = req.params;
+
+    if (!amount || !playerAddress) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing amount or playerAddress",
+      });
+    }
+
+    const tx = await callContractEnter(playerAddress, amount);
+
+    res.json({
+      success: true,
+      data: {
+        to: tx.to,
+        data: tx.data,
+        value: tx.value,
+        gas: tx.gas,
+        gasPrice: tx.gasPrice,
+      },
+    });
+  } catch (error) {
+    console.error("Get enter tx data error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

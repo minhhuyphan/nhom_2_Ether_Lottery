@@ -213,7 +213,39 @@
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+}
+
+.admin-account-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.account-label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.account-address {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.account-address:hover {
+  color: var(--primary-dark);
+  opacity: 0.8;
 }
 
 .header-right .icon-btn {

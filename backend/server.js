@@ -22,6 +22,8 @@ app.use(
       "http://127.0.0.1:3000",
       "http://localhost:5500",
       "http://127.0.0.1:5500",
+      "http://localhost:8080",
+      "http://127.0.0.1:8080",
     ],
     credentials: true,
   }),
@@ -44,18 +46,6 @@ app.get("/api/health", (req, res) => {
     success: true,
     message: "Server is running!",
     timestamp: new Date().toISOString(),
-  });
-});
-
-// Get server time for scheduling
-app.get("/api/server-time", (req, res) => {
-  const now = new Date();
-  res.json({
-    success: true,
-    timestamp: now.toISOString(),
-    unix: Math.floor(now.getTime() / 1000),
-    date: now.toLocaleDateString("vi-VN"),
-    time: now.toLocaleTimeString("vi-VN"),
   });
 });
 

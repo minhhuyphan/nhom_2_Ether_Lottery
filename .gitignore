@@ -8,3 +8,4 @@ deployments/
 *.swp
 .vscode/
 .idea/
+node_modules
