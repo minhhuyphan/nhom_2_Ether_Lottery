@@ -172,7 +172,7 @@ exports.getPublicInfo = async (req, res) => {
     // Lấy tổng giải thưởng (vé active chưa quay)
     const activeTickets = await Ticket.find({
       status: "active",
-    }).select("amount");
+    }).select("amount walletAddress");
 
     const prizePool = activeTickets.reduce(
       (sum, ticket) => sum + (ticket.amount || 0),
@@ -181,10 +181,16 @@ exports.getPublicInfo = async (req, res) => {
 
     const totalTickets = activeTickets.length;
 
+    // Lấy danh sách wallet addresses của người chơi (không trùng lặp)
+    const playersAddresses = [
+      ...new Set(activeTickets.map((t) => t.walletAddress)),
+    ];
+
     console.log("🎰 Public Info:", {
       prizePool: prizePool.toFixed(6),
       totalPlayers,
       totalTickets,
+      playersCount: playersAddresses.length,
     });
 
     res.json({
@@ -193,6 +199,7 @@ exports.getPublicInfo = async (req, res) => {
         prizePool: parseFloat(prizePool.toFixed(6)),
         totalPlayers,
         totalTickets,
+        players: playersAddresses,
       },
     });
   } catch (error) {
@@ -1255,13 +1262,11 @@ async function callContractEnter(playerAddress, amountETH) {
 
     // Estimate gas
     const amountWei = String(web3.utils.toWei(amountETH.toString(), "ether"));
-    
-    const gasEstimate = await contract.methods
-      .enter()
-      .estimateGas({ 
-        from: playerAddress,
-        value: amountWei
-      });
+
+    const gasEstimate = await contract.methods.enter().estimateGas({
+      from: playerAddress,
+      value: amountWei,
+    });
 
     // Build transaction
     const tx = {
@@ -1288,6 +1293,173 @@ async function callContractEnter(playerAddress, amountETH) {
     throw error;
   }
 }
+
+// @desc    Lấy thống kê tài chính (Thu nhập, Chi phí, Khối lượng, Lợi nhuận)
+// @route   GET /api/lottery/admin/finance-stats
+// @access  Private/Admin
+exports.getFinanceStats = async (req, res) => {
+  try {
+    // 1. Tổng Thu Nhập = Tổng tiền từ tất cả vé đã bán (amount từ Ticket)
+    const totalIncomeData = await Ticket.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+    const totalIncome = totalIncomeData[0]?.total || 0;
+
+    // 2. Tổng Chi Phí = Tổng giải thưởng đã phát (prizeAmount từ vé won)
+    const totalExpenseData = await Ticket.aggregate([
+      { $match: { status: "won" } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$prizeAmount" },
+        },
+      },
+    ]);
+    const totalExpense = totalExpenseData[0]?.total || 0;
+
+    // 3. Khối Lượng Giao Dịch = Tổng amount từ tất cả vé
+    const totalVolume = totalIncome; // Khối lượng = Tổng vé bán
+
+    // 4. Lợi Nhuận Ròng = Thu nhập - Chi phí
+    const totalProfit = totalIncome - totalExpense;
+
+    // 5. Số vé đã bán
+    const totalTickets = await Ticket.countDocuments();
+
+    // 6. Số vé trúng thưởng
+    const wonTickets = await Ticket.countDocuments({ status: "won" });
+
+    // 7. Số vé chưa quay
+    const activeTickets = await Ticket.countDocuments({ status: "active" });
+
+    console.log("💰 Finance Stats:", {
+      totalIncome: totalIncome.toFixed(6),
+      totalExpense: totalExpense.toFixed(6),
+      totalVolume: totalVolume.toFixed(6),
+      totalProfit: totalProfit.toFixed(6),
+      totalTickets,
+      wonTickets,
+      activeTickets,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalIncome: parseFloat(totalIncome.toFixed(6)),
+        totalExpense: parseFloat(totalExpense.toFixed(6)),
+        totalVolume: parseFloat(totalVolume.toFixed(6)),
+        totalProfit: parseFloat(totalProfit.toFixed(6)),
+        ticketStats: {
+          totalTickets,
+          wonTickets,
+          activeTickets,
+          lostTickets: totalTickets - wonTickets - activeTickets,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get finance stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy thống kê tài chính",
+    });
+  }
+};
+
+// @desc    Lấy lịch sử giao dịch (Transaction History)
+// @route   GET /api/lottery/admin/transactions
+// @access  Private/Admin
+exports.getTransactions = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const type = req.query.type || "all"; // fee, deposit, withdraw, prize, all
+    const skip = (page - 1) * limit;
+
+    // Map type to ticket status/type
+    let query = {};
+
+    if (type === "prize") {
+      query = { status: "won" }; // Giải thưởng = vé trúng
+    } else if (type === "fee") {
+      query = { status: "lost" }; // Phí quản lý = vé thua (quản lý giữ lại tiền)
+    } else if (type === "all") {
+      query = { drawDate: { $exists: true } }; // Tất cả vé đã quay (won hoặc lost)
+    }
+
+    // Get transactions
+    const transactions = await Ticket.find(query)
+      .populate("user", "username email")
+      .sort({ drawDate: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Ticket.countDocuments(query);
+
+    // Format transactions for display
+    const formattedTransactions = transactions.map((ticket) => {
+      let transactionType = "unknown";
+      let amount = ticket.amount;
+      let amountDirection = "neutral";
+
+      if (ticket.status === "won") {
+        transactionType = "prize"; // Giải thưởng
+        amount = ticket.prizeAmount || ticket.amount;
+        amountDirection = "income";
+      } else if (ticket.status === "lost") {
+        transactionType = "fee"; // Phí quản lý (tiền giữ lại)
+        amount = ticket.amount;
+        amountDirection = "income"; // Từ góc độ quản lý
+      }
+
+      return {
+        id: ticket._id,
+        type: transactionType,
+        from: ticket.walletAddress,
+        to: "0x0000...0000", // Contract address (cắt ngắn)
+        amount: parseFloat(amount.toFixed(6)),
+        timestamp: ticket.drawDate || ticket.createdAt,
+        status: ticket.status === "won" ? "success" : "success",
+        ticketNumber: ticket.ticketNumber,
+        username: ticket.user?.username || "Unknown",
+        txHash: ticket.prizeTransactionHash || "Pending",
+        amountDirection,
+      };
+    });
+
+    console.log(`📊 Transactions fetched:`, {
+      page,
+      limit,
+      type,
+      total,
+      returned: formattedTransactions.length,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        transactions: formattedTransactions,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get transactions error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Không thể lấy lịch sử giao dịch",
+    });
+  }
+};
 
 // @desc    Get transaction data để gọi enter() (cho frontend Web3)
 // @route   GET /api/lottery/enter-tx-data/:amount/:playerAddress

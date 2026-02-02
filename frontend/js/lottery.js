@@ -420,63 +420,80 @@ async function loadContractData() {
     // Get prize pool from PUBLIC API (không cần token)
     const apiUrl = "http://localhost:5000/api/lottery/public-info";
     console.log("📡 Fetching:", apiUrl);
-    
+
     const publicResponse = await fetch(apiUrl);
-    console.log("📥 Response status:", publicResponse.status, publicResponse.ok ? "OK" : "FAILED");
+    console.log(
+      "📥 Response status:",
+      publicResponse.status,
+      publicResponse.ok ? "OK" : "FAILED",
+    );
 
     if (publicResponse.ok) {
       const publicData = await publicResponse.json();
       console.log("📊 Public lottery info:", publicData);
-      
+
       if (publicData.success) {
         const prizePool = publicData.data.prizePool;
         const totalPlayers = publicData.data.totalPlayers;
         const totalTickets = publicData.data.totalTickets;
-        
+        const players = publicData.data.players || [];
+
         console.log("💰 Prize Pool:", prizePool, "ETH");
         console.log("👥 Total Players:", totalPlayers);
         console.log("🎫 Total Tickets:", totalTickets);
-        
+        console.log("🦊 Players:", players);
+
         // Cập nhật prize pool
         const prizePoolEth = document.getElementById("prize-pool-eth");
         const prizePoolUsd = document.getElementById("prize-pool-usd");
-        
+
         console.log("🎯 DOM Elements found:", {
           prizePoolEth: !!prizePoolEth,
-          prizePoolUsd: !!prizePoolUsd
+          prizePoolUsd: !!prizePoolUsd,
         });
-        
+
         if (prizePoolEth) {
           prizePoolEth.textContent = parseFloat(prizePool).toFixed(4);
           console.log("✅ Updated prize-pool-eth:", prizePoolEth.textContent);
         } else {
-          console.error("❌ Element #prize-pool-eth NOT FOUND!");
+          console.warn("⚠️ Element #prize-pool-eth NOT FOUND!");
         }
-        
+
         if (prizePoolUsd) {
-          prizePoolUsd.textContent = `~ $${(parseFloat(prizePool) * ethToUsd).toFixed(2)} USD`;
+          prizePoolUsd.textContent = `~ $${(
+            parseFloat(prizePool) * ethToUsd
+          ).toFixed(2)} USD`;
           console.log("✅ Updated prize-pool-usd:", prizePoolUsd.textContent);
         } else {
-          console.error("❌ Element #prize-pool-usd NOT FOUND!");
+          console.warn("⚠️ Element #prize-pool-usd NOT FOUND!");
         }
-        
+
         // Cập nhật số người chơi
         const totalPlayersEl = document.getElementById("total-players");
         const winChanceEl = document.getElementById("win-chance");
         const playersCountEl = document.getElementById("players-count");
-        
+
         if (totalPlayersEl) totalPlayersEl.textContent = totalTickets;
         if (playersCountEl) playersCountEl.textContent = totalTickets;
         if (winChanceEl) {
-          winChanceEl.textContent = totalTickets > 0 ? `1/${totalTickets}` : "Be the first!";
+          winChanceEl.textContent =
+            totalTickets > 0 ? `1/${totalTickets}` : "Be the first!";
         }
-        
-        console.log(`✅ ✅ ✅ SUCCESS! Loaded: ${prizePool} ETH, ${totalTickets} tickets, ${totalPlayers} players`);
+
+        // Hiển thị danh sách người chơi đang tham gia
+        displayPlayers(players);
+
+        console.log(
+          `✅ ✅ ✅ SUCCESS! Loaded: ${prizePool} ETH, ${totalTickets} tickets, ${totalPlayers} players`,
+        );
       } else {
         console.error("❌ API returned success=false:", publicData);
       }
     } else {
-      console.error("❌ API request failed with status:", publicResponse.status);
+      console.error(
+        "❌ API request failed with status:",
+        publicResponse.status,
+      );
     }
 
     // Get ticket price (hardcoded)
@@ -493,101 +510,122 @@ async function loadContractData() {
 // Load Latest Draw Results
 async function loadLatestDrawResults() {
   console.log("🎯 Loading latest draw results...");
-  
+
   try {
     const response = await fetch(`${API_BASE_URL}/lottery/latest-draw`);
-    
+
     if (!response.ok) {
       console.log("⚠️ No draw results available yet");
       showNoDrawMessage();
       return;
     }
-    
+
     const result = await response.json();
     console.log("📊 Draw results:", result);
-    
+
     if (result.success && result.data) {
       const draw = result.data;
-      
+
       // Hide "no draw" message
-      document.getElementById("no-draw-yet").style.display = "none";
-      
+      const noDrawEl = document.getElementById("no-draw-yet");
+      if (noDrawEl) {
+        noDrawEl.style.display = "none";
+      }
+
       // Check if this is a new result
-      const lastDrawId = localStorage.getItem('lastDrawId');
+      const lastDrawId = localStorage.getItem("lastDrawId");
       const isNewResult = lastDrawId !== String(draw._id);
-      
+
       if (isNewResult && lastDrawId) {
         // Highlight the results container for new results
-        const container = document.querySelector('.draw-results-container');
-        container.classList.add('new-result');
-        setTimeout(() => {
-          container.classList.remove('new-result');
-        }, 1500);
+        const container = document.querySelector(".draw-results-container");
+        if (container) {
+          container.classList.add("new-result");
+          setTimeout(() => {
+            container.classList.remove("new-result");
+          }, 1500);
+        }
       }
-      
+
       // Save current draw ID
-      localStorage.setItem('lastDrawId', draw._id);
-      
+      localStorage.setItem("lastDrawId", draw._id);
+
       // Display winning number (ALWAYS show if available)
       if (draw.winningNumber) {
-        const digits = draw.winningNumber.toString().padStart(6, '0').split('');
-        const digitElements = document.querySelectorAll('#latest-winning-number .digit');
+        const digits = draw.winningNumber.toString().padStart(6, "0").split("");
+        const digitElements = document.querySelectorAll(
+          "#latest-winning-number .digit",
+        );
         digitElements.forEach((el, idx) => {
-          el.textContent = digits[idx] || '-';
+          el.textContent = digits[idx] || "-";
           // Add animation effect
-          el.style.animation = 'none';
+          el.style.animation = "none";
           setTimeout(() => {
-            el.style.animation = 'pulse 0.5s ease';
+            el.style.animation = "pulse 0.5s ease";
           }, idx * 100);
         });
       }
-      
+
       // Display draw date
       const drawDateEl = document.getElementById("latest-draw-date");
       if (drawDateEl && draw.drawDate) {
         const date = new Date(draw.drawDate);
-        drawDateEl.textContent = `Ngày quay: ${date.toLocaleString('vi-VN')}`;
+        drawDateEl.textContent = `Ngày quay: ${date.toLocaleString("vi-VN")}`;
         drawDateEl.style.display = "block";
       }
-      
+
       // Display winners count (ALWAYS show, even if 0)
       const winnersCountEl = document.getElementById("latest-winners-count");
       if (winnersCountEl) {
         const count = draw.winnersCount || 0;
         winnersCountEl.textContent = count;
-        winnersCountEl.style.color = count > 0 ? '#10B981' : '#EF4444';
+        winnersCountEl.style.color = count > 0 ? "#10B981" : "#EF4444";
       }
-      
+
       // Display total prize (ALWAYS show)
       const totalPrizeEl = document.getElementById("latest-total-prize");
       if (totalPrizeEl) {
         const prize = draw.totalPrizeDistributed || 0;
         totalPrizeEl.textContent = `${prize} ETH`;
-        totalPrizeEl.style.color = prize > 0 ? '#10B981' : '#9CA3AF';
+        totalPrizeEl.style.color = prize > 0 ? "#10B981" : "#9CA3AF";
       }
-      
+
       // Display winners list if available
       const winnersContainer = document.getElementById("winners-container");
-      if (draw.winners && draw.winners.length > 0) {
-        winnersContainer.style.display = "block";
-        const winnersList = document.getElementById("latest-winners-list");
-        winnersList.innerHTML = draw.winners.map((winner, idx) => `
-          <li style="animation: slideIn 0.3s ease ${idx * 0.1}s both">
-            <span class="winner-wallet">🏆 ${formatAddress(winner.walletAddress)}</span>
-            <span class="winner-prize" style="color: #10B981; font-weight: bold;">${winner.prizeAmount} ETH</span>
-          </li>
-        `).join('');
-      } else {
-        // Show message when no winners
-        winnersContainer.style.display = "block";
-        const winnersList = document.getElementById("latest-winners-list");
-        winnersList.innerHTML = `
-          <li style="text-align: center; color: #9CA3AF; padding: 20px;">
-            <span>❌ Không có người trúng thưởng trong kỳ này</span>
-          </li>
-        `;
+      if (winnersContainer) {
+        if (draw.winners && draw.winners.length > 0) {
+          winnersContainer.style.display = "block";
+          const winnersList = document.getElementById("latest-winners-list");
+          if (winnersList) {
+            winnersList.innerHTML = draw.winners
+              .map(
+                (winner, idx) => `
+              <li style="animation: slideIn 0.3s ease ${idx * 0.1}s both">
+                <span class="winner-wallet">🏆 ${formatAddress(
+                  winner.walletAddress,
+                )}</span>
+                <span class="winner-prize" style="color: #10B981; font-weight: bold;">${
+                  winner.prizeAmount
+                } ETH</span>
+              </li>
+            `,
+              )
+              .join("");
+          }
+        } else {
+          // Show message when no winners
+          winnersContainer.style.display = "block";
+          const winnersList = document.getElementById("latest-winners-list");
+          if (winnersList) {
+            winnersList.innerHTML = `
+              <li style="text-align: center; color: #9CA3AF; padding: 20px;">
+                <span>❌ Không có người trúng thưởng trong kỳ này</span>
+              </li>
+            `;
+          }
+        }
       }
-      
+
       console.log("✅ Draw results loaded successfully");
     } else {
       console.log("⚠️ No draw data in response");
@@ -601,43 +639,67 @@ async function loadLatestDrawResults() {
 
 // Helper function to show no draw message
 function showNoDrawMessage() {
-  document.getElementById("no-draw-yet").style.display = "block";
-  document.getElementById("winners-container").style.display = "none";
-  document.getElementById("latest-draw-date").style.display = "none";
-  
+  const noDrawEl = document.getElementById("no-draw-yet");
+  const winnersContainer = document.getElementById("winners-container");
+  const latestDrawDate = document.getElementById("latest-draw-date");
+
+  if (noDrawEl) noDrawEl.style.display = "block";
+  if (winnersContainer) winnersContainer.style.display = "none";
+  if (latestDrawDate) latestDrawDate.style.display = "none";
+
   // Reset winning numbers
-  const digitElements = document.querySelectorAll('#latest-winning-number .digit');
-  digitElements.forEach(el => el.textContent = '-');
-  
+  const digitElements = document.querySelectorAll(
+    "#latest-winning-number .digit",
+  );
+  digitElements.forEach((el) => (el.textContent = "-"));
+
   // Reset stats
   const winnersCountEl = document.getElementById("latest-winners-count");
-  if (winnersCountEl) winnersCountEl.textContent = '0';
-  
+  if (winnersCountEl) winnersCountEl.textContent = "0";
+
   const totalPrizeEl = document.getElementById("latest-total-prize");
-  if (totalPrizeEl) totalPrizeEl.textContent = '0 ETH';
+  if (totalPrizeEl) totalPrizeEl.textContent = "0 ETH";
 }
 
 // Display Players
 function displayPlayers(players) {
+  console.log("🎯 displayPlayers() called with:", players);
   const playersList = document.getElementById("players-list");
   const noPlayers = document.getElementById("no-players");
   const playersCount = document.getElementById("players-count");
 
-  playersCount.textContent = players.length;
+  console.log("📍 DOM Elements:", {
+    playersList: !!playersList,
+    noPlayers: !!noPlayers,
+    playersCount: !!playersCount,
+  });
+
+  // Safety check: if elements don't exist, return early
+  if (!playersList || !noPlayers) {
+    console.warn("⚠️ displayPlayers: Required DOM elements not found!");
+    return;
+  }
 
   if (players.length === 0) {
     playersList.innerHTML = "";
     noPlayers.classList.remove("hidden");
+    if (playersCount) playersCount.textContent = "0";
   } else {
     noPlayers.classList.add("hidden");
+    if (playersCount) playersCount.textContent = players.length;
+
     playersList.innerHTML = players
       .map(
         (address, index) => `
       <li class="player-item ${
         address.toLowerCase() === userAccount?.toLowerCase() ? "is-you" : ""
       }">
+        <span class="player-number">${index + 1}</span>
         <span class="player-icon">🦊</span>
-        <span class="player-address">${formatAddress(address)}</span>
+        <span class="player-address" title="${address}">${address.substring(
+          0,
+          12,
+        )}...${address.substring(address.length - 8)}</span>
         ${
           address.toLowerCase() === userAccount?.toLowerCase()
             ? '<span class="you-badge">You</span>'
@@ -653,6 +715,12 @@ function displayPlayers(players) {
       )
       .join("");
   }
+
+  console.log(
+    "✅ displayPlayers() finished, rendered:",
+    players.length,
+    "players",
+  );
 }
 
 // Enter Lottery
@@ -815,7 +883,7 @@ async function pickWinner() {
 
     // Reload data and refresh draw results
     await loadContractData();
-    
+
     // Wait a bit for backend to process, then reload draw results
     setTimeout(async () => {
       await loadLatestDrawResults();

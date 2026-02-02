@@ -2,14 +2,60 @@
 
 let web3;
 let contract;
-let adminAccount = "0xAdmin...1234"; // Mock admin account
+let adminAccount = "0x7f2a7abf8c5248e8768061553a21d65f263cf0d2"; // Default admin account
 let dashboardRefreshInterval; // Auto-refresh interval
 let serverTimeInterval; // Server time update interval
 
-// Initialize (without MetaMask)
-function initWeb3() {
-  // Skip MetaMask connection
-  // Just set network name
+// Initialize with MetaMask connection
+async function initWeb3() {
+  try {
+    // Check if MetaMask is installed
+    if (typeof window.ethereum !== "undefined") {
+      console.log("🦊 MetaMask detected, connecting...");
+      web3 = new Web3(window.ethereum);
+
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      adminAccount = accounts[0];
+      console.log("✅ Connected to MetaMask:", adminAccount);
+
+      // Update UI with connected account
+      updateAccountDisplay();
+
+      // Listen for account changes
+      window.ethereum.on("accountsChanged", (newAccounts) => {
+        adminAccount = newAccounts[0];
+        console.log("🔄 Account changed:", adminAccount);
+        updateAccountDisplay();
+      });
+
+      // Listen for chain changes
+      window.ethereum.on("chainChanged", () => {
+        location.reload();
+      });
+    } else {
+      console.log(
+        "⚠️ MetaMask not detected, using default admin account:",
+        adminAccount,
+      );
+      web3 = new Web3(
+        new Web3.providers.HttpProvider(
+          "https://sepolia.infura.io/v3/YOUR_INFURA_KEY",
+        ),
+      );
+      // Display default account
+      updateAccountDisplay();
+    }
+  } catch (error) {
+    console.error("❌ MetaMask connection failed:", error);
+    // Fallback to default account
+    web3 = new Web3();
+    updateAccountDisplay();
+  }
+
+  // Set network name
   const networkElement = document.getElementById("network-name");
   if (networkElement) {
     networkElement.textContent = "Sepolia Testnet";
@@ -145,6 +191,33 @@ async function loadDashboardData() {
     }
   } catch (error) {
     console.error("Error loading dashboard data:", error);
+  }
+}
+
+// Update Account Display
+function updateAccountDisplay() {
+  const accountElement = document.getElementById("admin-account");
+  if (accountElement) {
+    // Show shortened version of account address
+    const shortAddress =
+      adminAccount.substring(0, 6) + "..." + adminAccount.substring(38);
+    accountElement.textContent = shortAddress;
+    accountElement.title = adminAccount; // Full address on hover
+    accountElement.style.cursor = "pointer";
+
+    // Add click to copy address
+    accountElement.onclick = () => {
+      navigator.clipboard.writeText(adminAccount);
+      alert("📋 Địa chỉ đã được sao chép: " + adminAccount);
+    };
+  }
+
+  // Update sidebar profile with account info
+  const adminNameElement = document.querySelector(".admin-name");
+  if (adminNameElement) {
+    const shortAddress =
+      adminAccount.substring(0, 6) + "..." + adminAccount.substring(38);
+    adminNameElement.textContent = shortAddress;
   }
 }
 

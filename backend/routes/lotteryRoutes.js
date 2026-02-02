@@ -4,21 +4,18 @@ const {
   buyTicket,
   getMyTickets,
   getMyStats,
-  getAllTickets,
-  getAdminStats,
   getPublicInfo,
   getLatestDraw,
-  getRecentPlayers,
+  getEnterTxData,
+  getAllTickets,
+  getAdminStats,
   drawLottery,
-  getDrawResults,
-  resetTickets,
   scheduleDraw,
-  cancelScheduledDraw,
-  getScheduledDraws,
   getFailedPrizes,
   retrySendPrize,
   retryAllFailedPrizes,
-  getEnterTxData,
+  getFinanceStats,
+  getTransactions,
 } = require("../controllers/lotteryController");
 const { protect, adminOnly } = require("../middleware/auth");
 
@@ -35,15 +32,11 @@ router.get("/my-stats", protect, getMyStats);
 // Admin routes
 router.get("/all-tickets", protect, adminOnly, getAllTickets);
 router.get("/admin/stats", protect, adminOnly, getAdminStats);
-router.get("/admin/recent-players", protect, adminOnly, getRecentPlayers);
-router.get("/draw-results", protect, adminOnly, getDrawResults);
+router.get("/draw-results", protect, adminOnly, getLatestDraw);
 router.post("/draw", protect, adminOnly, drawLottery);
-router.post("/reset-tickets", protect, adminOnly, resetTickets);
 
 // Schedule routes
 router.post("/schedule-draw", protect, adminOnly, scheduleDraw);
-router.post("/cancel-scheduled-draw", protect, adminOnly, cancelScheduledDraw);
-router.get("/scheduled-draws", protect, adminOnly, getScheduledDraws);
 
 // Prize retry routes (Admin - để fix lỗi gửi tiền)
 router.get("/admin/failed-prizes", protect, adminOnly, getFailedPrizes);
@@ -59,5 +52,9 @@ router.post(
   adminOnly,
   retryAllFailedPrizes,
 );
+
+// Finance routes (Admin - Thống kê tài chính)
+router.get("/admin/finance-stats", protect, adminOnly, getFinanceStats);
+router.get("/admin/transactions", protect, adminOnly, getTransactions);
 
 module.exports = router;

@@ -47,18 +47,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Get server time for scheduling
-app.get("/api/server-time", (req, res) => {
-  const now = new Date();
-  res.json({
-    success: true,
-    timestamp: now.toISOString(),
-    unix: Math.floor(now.getTime() / 1000),
-    date: now.toLocaleDateString("vi-VN"),
-    time: now.toLocaleTimeString("vi-VN"),
-  });
-});
-
 // Handle 404 for API routes
 app.use("/api/*", (req, res) => {
   res.status(404).json({

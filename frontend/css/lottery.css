@@ -139,7 +139,7 @@
 }
 
 .winner-wallet {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
 }
@@ -161,7 +161,7 @@
   .latest-draw-info {
     grid-template-columns: 1fr;
   }
-  
+
   .winning-number .digit {
     width: 40px;
     height: 52px;
@@ -549,6 +549,20 @@
 
 .player-icon {
   font-size: 20px;
+}
+
+.player-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--primary-purple);
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .player-address {
@@ -1115,7 +1129,8 @@
 }
 
 @keyframes digitPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
   }
@@ -1141,7 +1156,8 @@
 }
 
 @keyframes highlightResult {
-  0%, 100% {
+  0%,
+  100% {
     border-color: rgba(100, 150, 255, 0.2);
   }
   50% {
@@ -1156,11 +1172,21 @@
   opacity: 0;
 }
 
-.winners-list li:nth-child(1) { animation-delay: 0.1s; }
-.winners-list li:nth-child(2) { animation-delay: 0.2s; }
-.winners-list li:nth-child(3) { animation-delay: 0.3s; }
-.winners-list li:nth-child(4) { animation-delay: 0.4s; }
-.winners-list li:nth-child(5) { animation-delay: 0.5s; }
+.winners-list li:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.winners-list li:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.winners-list li:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.winners-list li:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.winners-list li:nth-child(5) {
+  animation-delay: 0.5s;
+}
 
 /* Loading state for results */
 .draw-results-container.loading {
@@ -1169,7 +1195,7 @@
 }
 
 .draw-results-container.loading::after {
-  content: '⌛ Đang tải kết quả...';
+  content: "⌛ Đang tải kết quả...";
   position: absolute;
   top: 50%;
   left: 50%;
